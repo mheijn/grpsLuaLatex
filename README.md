@@ -1,5 +1,5 @@
 # grpsLuaLatex
-Create documents with LuaLaTeX direct from Gramps sqlite3 database 
+Create documents with LuaLaTeX directly from Gramps sqlite3 database 
 ## dependning
 ### Lua
 * luasql-sqlite3
