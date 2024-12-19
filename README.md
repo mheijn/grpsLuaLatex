@@ -1,2 +1,24 @@
 # grpsLuaLatex
-Create documents direct from Gramps sqlite3 database 
+Create documents with LuaLaTeX direct from Gramps sqlite3 database 
+## dependning
+### Lua
+* luasql-sqlite3
+### LaTeX
+* luacode
+* luapackageloader
+* multicol
+* geometry
+* babel
+* ifthen
+* mfirstuc
+* xkeyval
+* xstring
+* imakeidx
+* fontawesome5
+* hyperref}
+* tikz
+* calc
+* graphicx
+* fancyref
+* ocgx2
+* genealogytree
