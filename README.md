@@ -1,5 +1,12 @@
 # grpsLuaLatex
 Create documents with LuaLaTeX directly from Gramps sqlite3 database 
+
+This package is still in development. Use it at you own risk and suggestions are welcome.
+
+## install
+* run: 
+ * latex grpslua.ins
+ * install.sh
 ## dependning
 ### Lua
 * luasql-sqlite3

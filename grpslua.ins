@@ -1,0 +1,84 @@
+%% Copyright (C) <+year+> by <+author+> <<+email+>>
+%% --------------------------------------------------------------------------
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2005/12/01 or later.
+%%
+%% This work has the LPPL maintenance status `maintained'.
+%%
+%% The Current Maintainer of this work is <+maintainer+>.
+%%
+%% This work consists of the files <+filebase+>.dtx and <+filebase+>.ins
+%% and the derived filebase <+filebase+>.<+extension+>.
+%%
+
+\input docstrip.tex
+\keepsilent
+
+\usedir{tex/luatex/grps}
+
+\preamble
+
+This is a generated file.
+
+Copyright (C) 2024 by Marc Heijn <marc@heijn-buis,demon.nl>
+--------------------------------------------------------------------------
+This work may be distributed and/or modified under the
+conditions of the LaTeX Project Public License, either version 1.3
+of this license or (at your option) any later version.
+The latest version of this license is in
+  http://www.latex-project.org/lppl.txt
+and version 1.3 or later is part of all distributions of LaTeX
+version 2005/12/01 or later.
+
+\endpreamble
+
+%\BaseDirectory{.}
+%\UseTDS
+%\usedir{src}
+\askonceonly
+
+\generate{\file{grpslua.sty}{\from{grpslua.dtx}{package}}}
+
+\nopreamble
+\nopostamble
+
+\generate{\file{install.bat}{\from{grpslua.dtx}{msdos}}}
+\generate{\file{database.sql}  {\from{grpslua.dtx}{database}}}
+\generate{\file{util.lua}  {\from{grpslua.dtx}{util}}}
+\generate{\file{queries.lua}  {\from{grpslua.dtx}{queries}}}
+\generate{\file{place.lua}  {\from{grpslua.dtx}{place}}}
+\generate{\file{pickle.lua}  {\from{grpslua.dtx}{pickle}}}
+\generate{\file{person.lua}  {\from{grpslua.dtx}{person}}}
+\generate{\file{pedegree.lua}  {\from{grpslua.dtx}{pedegree}}}
+\generate{\file{output.lua}  {\from{grpslua.dtx}{output}}}
+\generate{\file{metadata.lua}  {\from{grpslua.dtx}{metadata}}}
+\generate{\file{media.lua}  {\from{grpslua.dtx}{media}}}
+\generate{\file{init.lua}  {\from{grpslua.dtx}{init}}}
+\generate{\file{grpstex.lua}  {\from{grpslua.dtx}{grpstex}}}
+\generate{\file{family.lua}  {\from{grpslua.dtx}{family}}}
+\generate{\file{events.lua}  {\from{grpslua.dtx}{events}}}
+\generate{\file{date.lua}  {\from{grpslua.dtx}{date}}}
+\generate{\file{remove.sh}  {\from{grpslua.dtx}{remove}}}
+\generate{\file{install.sh}  {\from{grpslua.dtx}{install}}}
+
+\obeyspaces
+\Msg{*************************************************************}
+\Msg{*                                                           *}
+\Msg{* To finish the installation you have to move the following *}
+\Msg{* file into a directory searched by TeX:                    *}
+\Msg{*                                                           *}
+\Msg{*     grpslua.sty                                           *}
+\Msg{*                                                           *}
+\Msg{* To produce the documentation run the file grpslua.dtx     *}
+\Msg{* through LaTeX.                                            *}
+\Msg{*                                                           *}
+\Msg{* Happy TeXing!                                             *}
+\Msg{*                                                           *}
+\Msg{*************************************************************}
+
+\endbatchfile
