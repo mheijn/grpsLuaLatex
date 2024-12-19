@@ -1,0 +1,114 @@
+%% \subsection{Languages}
+%% \paragraph{English}
+%%
+%%
+ \def\grpsThij{he }%
+ \def\grpsTHij{He }%
+ \def\grpsTzij{she }%
+ \def\grpsTZij{She }%
+ \def\grpsTis{is }%
+ \def\grpsTmet{with }%
+ \def\grpsTen{and }%
+ \def\grpsTZoon{Son of }%
+ \def\grpsTDochter{Daughter of }%
+%% used in events
+ \def\grpsTop{at }
+ \def\grpsTvoor{before }
+ \def\grpsTna{after }
+ \def\grpsTrond{about }
+ \def\grpsTvan{from }
+ \def\grpsTtussen{between }
+ \def\grpsTtrouwde{married }
+ \def\grpsTscheidde{divorced }
+ \def\grpsTverloofde{engaged }
+ \def\grpsTkoppelde{connected }
+ \def\grpsTgeboren{is born }
+ \def\grpsToverleed{died }
+ \def\grpsTbegraven{is buried}
+ \def\grpsTgedoopt{is baptiezed }
+ \def\grpsTwoonde{lived }
+ \def\grpsTte{in }
+ \def\grpsTtot{til}
+ \def\grpsTberoepis{occupation is }
+ \def\grpsTopleiding{is educationed }
+ \newcommand{\grpsTmonth}[1]{%
+  \ifcase#1
+    \or January\or February\or March\or April\or May\or June%
+    \or July\or August\or September\or October\or November\or December%
+  \else
+    Invalid month number
+  \fi}%
+ \def\grpsTkwartierstaatvan#1{Ancestors of #1}%
+ \def\grpsTdescendenceof#1{Descendence of #1}%
+ \def\grpsTvoorouder#1{Generation #1}%
+%%
+%% \paragraph{Dutch}
+%%
+ \iflanguage{dutch}{%
+ \def\grpsThij{hij }%
+ \def\grpsTHij{Hij }%
+ \def\grpsTzij{zij }%
+ \def\grpsTZij{Zij }%
+ \def\grpsTmet{met }%
+ \def\grpsTen{en }%
+ \def\grpsTZoon{Zoon van }%
+ \def\grpsTDochter{Dochter van }%
+%% used in events
+ \def\grpsTop{op }
+ \def\grpsTvoor{voor }
+ \def\grpsTna{na }
+ \def\grpsTrond{rond }
+ \def\grpsTvan{van }
+ \def\grpsTtot{tot }
+ \def\grpsTtussen{tussen }
+ \def\grpsTtrouwde{trouwde }
+ \def\grpsTscheidde{scheidde }
+ \def\grpsTkoppelde{koppelde }
+ \def\grpsTverloofde{verloofde }
+ \def\grpsTgeboren{is geboren }
+ \def\grpsToverleed{is overleed }
+ \def\grpsTbegraven{is begraven }
+ \def\grpsTgedoopt{is gedoopt }
+ \def\grpsTwoonde{woonde }
+ \def\grpsTte{in }
+ \def\grpsTberoepis{beroep is }
+ \def\grpsTopleiding{is opgeleid }
+ \renewcommand{\grpsTmonth}[1]{%
+  \ifcase#1
+    \or januarie\or februarie\or maart\or april\or mei\or juni%
+    \or juli\or augustus\or september\or oktober\or november\or december%
+  \else
+    incorrect maand numbmer
+  \fi}%
+ \def\grpsTkwartierstaatvan#1{Kwartierstaat van #1}
+ \def\grpsTdescendenceof#1{Afstammelingen van #1}%
+ \renewcommand\grpsTvoorouder[1]{%
+  \ifcase#1%
+    \or Kwartierdrager%
+        \or Ouders \or Grootouders \or Overgrootouders \or Betovergrootouders%
+        \or Oudouders \or Oudgrootouders\or Oudovergrootouders \or Oudbetovergrootouders%
+        %
+        \or Stamouders \or Stamgrootouders \or Stamovergrootouders \or Stambetovergrootouders%
+        \or Stamoudouders \or Stamoudgrootouders\or Stamoudovergrootouders \or Stamoudbetovergrootouders%%
+        %
+        \or Edelouders \or Edelgrootouders \or Edelovergrootouders \or Edelbetovergrootouders%
+        \or Edeloudouders \or Edeloudgrootouders\or Edeloudovergrootouders \or Edeloudbetovergrootouders%%
+        %
+        \or Edelstamouders \or Edelstamgrootouders \or Edelstamovergrootouders \or Edelstambetovergrootouders%
+        \or Edelstamoudouders \or Edelstamoudgrootouders\or Edelstamoudovergrootouders \or Edelstamoudbetovergrootouders%%
+        %
+        \or Voorouders \or Voorgrootouders \or Voorovergrootouders \or Voorbetovergrootouders%
+        \or Vooroudouders \or Vooroudgrootouders\or Vooroudovergrootouders \or Vooroudbetovergrootouders%%
+        %
+        \or Voorstamouders \or Voorstamgrootouders \or Voorstamovergrootouders \or Voorstambetovergrootouders%
+        \or Voorstamoudouders \or Voorstamoudgrootouders\or Voorstamoudovergrootouders \or Voorstamoudbetovergrootouders%%
+        %
+        \or Vooredelouders \or Vooredelgrootouders \or Vooredelovergrootouders \or Vooredelbetovergrootouders%
+        \or Vooredeloudouders \or Vooredeloudgrootouders\or Vooredeloudovergrootouders \or Vooredeloudbetovergrootouders%%
+        %
+        \or Vooredelstamouders \or Vooredelstamgrootouders \or Vooredelstamovergrootouders \or Vooredelstambetovergrootouders%
+        \or Vooredelstamoudouders \or Vooredelstamoudgrootouders\or Vooredelstamoudovergrootouders \or Vooredelstamoudbetovergrootouders%%
+  \else%
+    Generatie #1%
+  \fi}%
+ }{}%

@@ -1,0 +1,147 @@
+%% \subsection{Event}
+ %%
+%% \grpsIresidence
+\def\grpsIresidence{\small\faIcon{home}}%\ticon{home-outline}}
+%% \grpsIeducation
+\def\grpsIeducation{\small\faIcon{graduation-cap}}
+%% \grpsIoccupation
+\def\grpsIoccupation{\faIcon{hammer}}
+
+%%
+%% \marg{1 type}
+%% \marg{2 clader type}
+%% \marg{3 modifier}
+%% \marg{4 quality}
+%% \marg{5 date1}
+%% \marg{6 place1}\\
+%% \marg{7 date2}
+%% \marg{8 place2}
+%% \marg{9 text}
+%%\\
+%% \cmd{grpsEvent}\{19\}\{0\}\{3\}\{0\}\{2024-11-22\}\{place\}\{\}\{\}\{text\}
+%% \\short: \setkeys{grpskeys}{short} \grpsEvent{19}{0}{3}{0}{2024-11-22}{place}{}{}{text}
+%% \\long: \setkeys{grpskeys}{long} \grpsEvent{19}{0}{3}{0}{2024-11-22}{place}{}{}{text}
+%%
+\newcommand{\grpsEvent}[9]{%
+\if@shortperson%
+\getshorteventtype{#1}%
+\ifcase#3{}\or{$<$}\or{$>$}\or{$\sim$}\or{}\or{}\or{}\else{}\fi
+%
+\ifthenelse{#3 < 6}{%
+\ifx&#5&\relax\else\,\getshortdate{#5}\fi%
+\ifthenelse{#3 > 3}{\,-\,\ifx&#5&\relax\else\getshortdate{#7}\fi}{}%
+\ifx&#6&\relax\else{:#6}\fi}%
+{}%text only%
+\else% Long text person
+\getlongeventtype{#1} %
+\ifcase#3{\grpsTop}\or{\grpsTvoor}\or{\grpsTna}\or{\grpsTrond}%
+    \or{\grpsTvan}\or{\grpsTtussen}\or{}\else{}\fi%
+\ifthenelse{#3 < 6}{%
+\ifx&#5&{leeg}\else\getlongdate{#5}\fi%
+\ifthenelse{#3 > 3}{ \grpsTtot\ifx&#7&\relax\else\getlongdate{#7}\fi}{}%
+\ifx&#6&\relax\else\ \grpsTte\,#6\fi%
+\typeout{#9}%
+\ifx&#9&\relax\else\ (#9)\fi%
+}%
+{#9}%text only
+\fi%
+}
+%%% TYPE
+\newcommand{\getshorteventtype}[1]{
+\ifcase#1{CUSTOM}% = 0,
+or{\gtrsymMarried}%    MARRIAGE = 1,
+or{MARR\_SETTL}% = 2,
+or{MARR\_LIC}% = 3,
+or{MARR\_CONTR}% = 4,
+or{MARR\_BANNS}% = 5,
+or{\gtrsymEngaged}%    ENGAGEMENT = 6,
+or{\gtrsymDivorced}%    DIVORCE = 7,
+or{DIV\_FILING}% = 8,
+or{ANNULMENT}% = 9,
+%\gtrsymPartnership%    MARR\_ALT = 10,
+or{ADOPT}% = 11,
+or{\gtrsymBorn}%    BIRTH = 12,
+or{\gtrsymDied}%    DEATH = 13,
+or{ADULT\_CHRISTEN}% = 14,
+or{\gtrsymBaptized}%    BAPTISM = 15,
+or{BAR\_MITZVAH}% = 16,
+or{BAS\_MITZVAH}% = 17,
+or{BLESS}% = 18,
+or{\gtrsymBuried}%    BURIAL = 19,
+or{CAUSE\_DEATH}% = 20,
+or{CENSUS}% = 21,
+or{CHRISTEN}% = 22,
+or{CONFIRMATION}% = 23,
+or{CREMATION}% = 24,
+or{DEGREE}% = 25,
+or{\grpsIeducation}%    EDUCATION = 26,
+or{ELECTED}% = 27,
+or{EMIGRATION}% = 28,
+or{FIRST\_COMMUN}% = 29,
+or{IMMIGRATION}% = 30,
+or{GRADUATION}% = 31,
+or{MED\_INFO}% = 32,
+or{MILITARY\_SERV}% = 33,
+or{NATURALIZATION}% = 34,
+or{NOB\_TITLE}% = 35,
+or{NUM\_MARRIAGES}% = 36,
+or{\grpsIoccupation}%    OCCUPATION = 37,
+or{ORDINATION}% = 38,
+or{PROBATE}% = 39,
+or{PROPERTY}% = 40,
+or{RELIGION}% = 41,
+or{\grpsIresidence}%    RESIDENCE = 42,
+or{RETIREMENT}% = 43,
+or{WILL}% = 44
+\else{UNKNOWN}\fi%
+}
+%
+\newcommand{\getlongeventtype}[1]{
+\ifcase#1{CUSTOM}% = 0,
+\or{\grpsTtrouwde}%    MARRIAGE = 1,
+\or{MARR\_SETTL}% = 2,
+\or{MARR\_LIC}% = 3,
+\or{MARR\_CONTR}% = 4,
+\or{MARR\_BANNS}% = 5,
+\or{\grpsTverloofde}% = 6,
+\or{\grpsTscheidde}%    DIVORCE}% = 7,
+\or{DIV\_FILING}% = 8,
+\or{ANNULMENT}% = 9,
+\or{MARR\_ALT}% = 10,
+\or{ADOPT}% = 11,
+\or{\grpsTgeboren}%    BIRTH}% = 12,
+\or{\grpsToverleed}%    DEATH}% = 13,
+\or{ADULT\_CHRISTEN}% = 14,
+\or{\grpsTgedoopt}%    BAPTISM}% = 15,
+\or{BAR\_MITZVAH}% = 16,
+\or{BAS\_MITZVAH}% = 17,
+\or{BLESS}% = 18,
+\or{\grpsTbegraven}%    BURIAL}% = 19,
+\or{CAUSE\_DEATH}% = 20,
+\or{CENSUS}% = 21,
+\or{CHRISTEN}% = 22,
+\or{CONFIRMATION}% = 23,
+\or{CREMATION}% = 24,
+\or{DEGREE}% = 25,
+\or{\grpsTopleiding}%    EDUCATION}% = 26,
+\or{ELECTED}% = 27,
+\or{EMIGRATION}% = 28,
+\or{FIRST\_COMMUN}% = 29,
+\or{IMMIGRATION}% = 30,
+\or{GRADUATION}% = 31,
+\or{MED\_INFO}% = 32,
+\or{MILITARY\_SERV}% = 33,
+\or{NATURALIZATION}% = 34,
+\or{NOB\_TITLE}% = 35,
+\or{NUM\_MARRIAGES}% = 36,
+\or{\grpsTberoepis}%    OCCUPATION}% = 37,
+\or{ORDINATION}% = 38,
+\or{PROBATE}% = 39,
+\or{PROPERTY}% = 40,
+\or{RELIGION}% = 41,
+\or{\grpsTwoonde}%    RESIDENCE}% = 42,
+\or{RETIREMENT}% = 43,
+\or{WILL}% = 44
+\else{UNKNOWN}\fi
+}
+

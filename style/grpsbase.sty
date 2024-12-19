@@ -1,0 +1,250 @@
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+\ProvidesPackage{grpslua} [2024/10/05 v0.1 Coupling of Gramps to LuaLaTeX]
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lua
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{luacode}
+\RequirePackage{luapackageloader}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% common
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{multicol}
+\RequirePackage[top=1in, bottom=1.25in, left=1.0in, right=1.0in]{geometry}
+\RequirePackage{babel}
+\RequirePackage{ifthen}
+\RequirePackage{mfirstuc}
+\RequirePackage{xkeyval}
+\RequirePackage{xstring}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Indexing. We do not want this together with LTXDOC.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ifcsname DocInclude\endcsname\relax\else
+\usepackage{imakeidx}
+\makeindex[columns=2, title=Alphabetical Index, intoc]
+\fi
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Fonts en pdf
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{fontawesome5}
+\RequirePackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=red,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={},
+    }
+%
+%% \marg{link}\marg{txt}
+%% When hypertarget is already set use hyperlink.
+\newcommand\sethypertarget[2]{%
+\ifcsname HT@#1\endcsname%
+\hyperlink{#1}{#2}%
+\else%
+\hypertarget{#1}{\textcolor{blue!70!black}{#2}}%
+\expandafter\def\csname HT@#1\endcsname{}% Create a definition
+\fi%
+}%
+%
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Packages for images
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{tikz}
+\RequirePackage{calc}
+\RequirePackage{graphicx}
+\RequirePackage{fancyref}
+\RequirePackage[tikz]{ocgx2}
+\RequirePackage[all]{genealogytree}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  \subsection{Images}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \newenvironment{Figure}{\nopagebreak[4]}{\par}%
+ \tikzset{%
+	tagbox/.style = {red,thick,solid},%
+	tagtext/.style = {black,thick,solid,rounded corners,fill=white},%
+	tagnumber/.style={yellow, font=\bf, fill=blue}
+}%
+%%
+%% \marg{medium\_handle}
+%%
+\def\grpsMedium#1{%
+\directlua{%
+	%grps.test()
+	grps.picture('\luaescapestring{#1}')
+}}%
+%%
+%% Print all images
+%%
+\def\grpsAllMedia{%
+\directlua{%
+	grps.allmedia( )
+}}%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  \subsection{People and Gramps}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+ \newcommand\loadgramps{%
+	\directlua{if not grps then grps = require("gramps") end }}%
+%
+%% \marg{database name}
+\newcommand{\grampsdatabase}[1]{%
+    \loadgramps%
+    \directlua{grps.setdatabase('\luaescapestring{#1}')}
+}%
+%%
+%% \marg{person\_handle or person\_id}
+%% \cmd{\fullname}\{I0018\} = \fullname{I0018}
+\newcommand\fullname[1]{%
+  \loadgramps
+	\directlua{tex.print(grps.fullname('\luaescapestring{#1}'))}%
+	}%
+
+%% \marg{person\_handle or person\_id}
+\def\grpsPersdon#1{%
+\directlua{%
+	grps.person('\luaescapestring{#1}')
+}}%
+%%%%%%%
+\def\grpsAllPeople{%
+\noindent
+\directlua{%
+%	local i=1
+	for h,p in pairs(grps.allperson())do
+%		i=i+1
+%        if i>20 then break end
+
+        tex.print("\\makebox[0.1\\textwidth][l]{"..p.gramps_id .."}")
+%        tex.print("\\makebox[0.4\\textwidth][l]{"..h['handle'] .."}")
+        tex.print("\\makebox[0.28\\textwidth][l]{"..p.given_name .."}")
+        tex.print("\\makebox[0.21\\textwidth][l]{"..p.surname .."}")
+
+        if p.birth and p.birth[3] then
+			tex.print("\\makebox[0.1\\textwidth][l]{"..p.birth[3].."}")
+		elseif p.baptism and p.baptism[3] then
+			tex.print("\\makebox[0.1\\textwidth][l]{"..p.baptism[3].."}")
+		else
+			tex.print("\\makebox[0.1\\textwidth][l]{--}")
+		end
+
+		if p.death and p.death[3] then
+			tex.print("\\makebox[0.1\\textwidth][l]{"..p.death[3].."}")
+		elseif p.burial and p.burial[3] then
+			tex.print("\\makebox[0.1\\textwidth][l]{"..p.burial[3].."}")
+		else
+			tex.print("\\makebox[0.1\\textwidth][l]{--}")
+		end
+        tex.print("\\\\")
+    end
+}}%
+%
+%%\marg{person\_handle or person\_id}
+%% \cmd{\grpsFirstPerson}\{I0018\} =\\
+%% \setkeys{grpskeys}{short}\grpsFirstPerson{I0018}
+\newcommand{\grpsFirstPerson}[1]{%
+  \loadgramps
+  \directlua{%
+	if grps.shortformat then
+		grps.short_print_person('\luaescapestring{#1}',grps.gendepth)
+	else
+		grps.long_print_person('\luaescapestring{#1}',grps.gendepth)
+	end
+}%
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \subsection{Lists}
+ %%
+\newenvironment{grampslisti}{%
+\begin{list}{}%
+{%
+    \renewcommand{\makelabel}[1]{\bf\it\makebox{##1}}
+    \setlength{\itemindent}{5ex}%
+    \setlength{\leftmargin}{0pt}%
+      \setlength{\labelwidth}{7ex}%
+      \addtolength{\topsep}{-0.5\parskip}%
+      %\listparindent \normalparindent
+      \setlength{\parsep}{\parskip}%
+    \setlength{\labelsep}{0pt}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\leftmargin}{2ex}%
+    \setlength{\rightmargin}{0pt}%
+    }%
+}{\end{list}}
+\newenvironment{grampslistii}{%
+\begin{list}{}%
+{%
+    \renewcommand{\makelabel}[1]{\bf\it\makebox{##1}}
+    \setlength{\itemindent}{5ex}%
+    \setlength{\leftmargin}{0pt}%
+      \setlength{\labelwidth}{7ex}%
+      \addtolength{\topsep}{-0.5\parskip}%
+      %\listparindent \normalparindent
+      \setlength{\parsep}{\parskip}%
+    \setlength{\labelsep}{0pt}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\leftmargin}{5ex}%
+    \setlength{\rightmargin}{0pt}%
+    }%
+    \small
+}{\end{list}}
+%
+\renewenvironment{grampslisti}%
+{\begin{list}{}{%
+  \renewcommand{\makelabel}[1]{\bf\makebox{##1}}%
+  }}%
+{\end{list}}
+%
+\renewenvironment{grampslistii}%
+{\begin{list}{}{%
+%  \renewcommand{\makelabel}[1]{\bf\makebox{\romannum{##1}}}%
+  \renewcommand{\makelabel}[1]{\bf\makebox{\makeromannumber{##1}\relax}}%
+  }\small}
+{\end{list}}
+%
+\newenvironment{grampslistiii}
+{\begin{list}{}{%
+  \renewcommand{\makelabel}[1]{\makebox{\makealphanumber{##1}\relax}}%
+  }\footnotesize}
+{\end{list}}
+%
+\newenvironment{grampslistiiii}{\begin{list}{}{%
+  \renewcommand{\makelabel}[1]{\makebox{\makeromannumber{##1}\relax}}}\footnotesize}{\end{list}}
+%
+\newenvironment{grampslistiiiii}{\begin{list}{}{%
+  \renewcommand{\makelabel}[1]{\bf\makebox{##1}}%
+  }\small}{\end{list}}
+\newenvironment{grampslistiiiiii}{\begin{list}{}{%
+  \renewcommand{\makelabel}[1]{\bf\makebox{##1}}%
+  }\footnotesize}{\end{list}}
+\newenvironment{grampslistiiiiiii}{\begin{list}{}{%
+  \renewcommand{\makelabel}[1]{\bf\makebox{##1}}%
+  }\footnotesize}{\end{list}}
+\newenvironment{grampslistiiiiiiii}{\begin{list}{}{%
+  \renewcommand{\makelabel}[1]{\bf\makebox{##1}}%
+  }\tiny}{\end{list}}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\subsection{Utils}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ %%
+%% \marg{value}{modulo}
+\def\modulo#1#2{\number\numexpr\moduloop{#1}{#2}\relax}
+ \def\truncdiv#1#2{((#1-(#2-1)/2)/#2)}
+ \def\moduloop#1#2{(#1-\truncdiv{#1}{#2}*#2)}
+
+\newcommand{\makeromannumber}[1]{\setcounter{result}{0}%
+\addtocounter{result}{#1}%
+\roman{result}\relax%
+}
+\newcommand{\makealphanumber}[1]{\setcounter{result}{0}%
+\addtocounter{result}{#1}%
+\alph{result}\relax%
+}

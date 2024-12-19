@@ -1,0 +1,59 @@
+%% \subsection{Ifs}
+%
+\newif\if@shortperson
+\@shortpersonfalse
+
+\newif\if@parttree%
+\@parttreefalse%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  \paragraph{Column and list handling}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newif\if@listmode \@listmodefalse%
+\newif\if@columnmode \@columnmodefalse%
+\newcommand{\startmulticolumn}{%
+    \if@columnmode\relax\else\begin{multicols}{\grpscolumns}\@columnmodetrue\fi%
+}%
+\newcommand{\startlist}{%
+    \if@listmode\relax\else\begin{grampslisti}\@listmodetrue\fi%
+}%
+\newcommand{\stoplist}{%
+    \if@listmode\end{grampslisti}\@listmodefalse\fi%
+}%
+\newcommand{\stopmulticolumn}{%
+    \if@columnmode\end{multicols}\@columnmodefalse\fi%
+}%
+%
+%% \subsection{Counters}
+%
+\newcounter{Generation}
+\newcounter{grpsNumber}
+\newcounter{NewGeneration}
+\newcounter{result}
+
+%
+%% \subsection{Keys (grpskeys)}
+ \def\stringtrue{true}
+
+%% \paragraph{long}
+ \define@key{grpskeys}{long}[true]{\@shortpersonfalse\loadgramps%
+    \directlua{grps.shortformat = false}}%
+%% \paragraph{short}
+ \define@key{grpskeys}{short}[true]{\@shortpersontrue\loadgramps%
+    \directlua{grps.shortformat = true}}%
+%% \paragraph{gen}
+ \define@key{grpskeys}{gen}{\def\generations{#1}\loadgramps%
+    \directlua{grps.generations = #1}}%
+%% \paragraph{depth}
+ \define@key{grpskeys}{depth}{\loadgramps%
+    \loadgramps\directlua{grps.gendepth = #1}}
+%% \paragraph{genpiece}
+ \define@key{grpskeys}{genpiece}[4]{\def\generationpiece{#1}}%
+%% \paragraph{col}
+ \define@key{grpskeys}{col}[2]{\def\grpscolumns{#1}}%
+% \paragraph{parttree}
+ \define@key{grpskeys}{parttree}[true]{%
+    \def\partialbool{#1}%
+    \ifx\partialbool\stringtrue\@parttreetrue\else\@parttreefalse\fi%
+    }%
+

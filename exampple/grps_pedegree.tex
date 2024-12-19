@@ -1,0 +1,34 @@
+\documentclass[10pt,a4paper,twoside, dutch]{article}
+\usepackage{grpslua}
+\usepackage{headers}
+\grampsdatabase{sqlite.db}
+
+\makeindex
+
+\edef\centralid{I0008}
+
+\title{Familie van \fullname{\centralid} }
+\author{}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Voorouders van \fullname{\centralid}}
+\begin{center}
+\AncestorTree{\centralid}{4}
+\end{center}
+
+\section{\grpsTkwartierstaatvan{\fullname{\centralid}}}
+\Kwartierstaat[gen=6, depth=3, long]{\centralid}
+
+\section{Stamboom van \fullname{\centralid}}
+\DescendentTree{\centralid}{4}
+
+\section{Nageslacht van \fullname{\centralid}}
+\Descendence[gen=4, depth=2, col=3,long]{\centralid}
+
+\printindex
+
+\end{document}

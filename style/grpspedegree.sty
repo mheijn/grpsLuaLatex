@@ -1,0 +1,81 @@
+%
+% \subsection{Ancetsor} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ %%
+%% \marg{person\_handle or person\_id}
+%% \marg{maximum gennerations}
+%% \\ \cmd{\AncestorTree}\{I0018\}\{3\} =
+%% \AncestorTree{I0018}{3}
+\newcommand\AncestorTree[2]{
+\typeout{Ancestortree of:  #1 #2 generations}%
+\loadgramps%
+\directlua{
+    local id = "\luaescapestring{#1}"
+    local max_gen = \luaescapestring{#2}
+    filebase = 'data.'..id..'.kwartierstaat.'..max_gen
+    local filename = kpse.find_file(filebase)
+    if filename == nil then
+        tex.print("\\typeout{create file "..filebase.."}")
+        local file = io.open(filebase, "w")
+        if file then
+            file:write(grps.ancestor_tree_data(id,max_gen))
+            file:close()
+        else
+            tex.print("\\typeout{Error: Could not open the file.}")
+        end
+    end
+}%
+\begin{tikzpicture}
+\genealogytree[%
+	template=database traditional,
+	level size=1.2cm,
+	node size=0.12\columnwidth,%2.2
+	date format=yyyy,
+	list separators={\par}{ }{}{},
+]{input{data.#1.kwartierstaat.#2}}
+\end{tikzpicture}
+}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \oarg{options}
+%% \marg{person\_handle or person\_id}
+%% \\ options: gen=2,depth=1,short/long
+%% \\ \cmd{\Kwartierstaat}[short,gen=4,depth=2]\{I0018\}
+\newcommand{\Kwartierstaat}[2][]{%
+	\loadgramps%
+	\typeout{Kwartierstaat van #2}%
+	\setkeys{grpskeys}{gen=2,depth=1,short,col=2,#1}
+	\directlua{grps.set('\luaescapestring{#2}',\luaescapestring{\generations})}%
+	\setcounter{Generation}{1}%
+	\setcounter{NewGeneration}{1}%
+	\setcounter{grpsNumber}{1}%
+% Start the loop
+    \@listmodefalse%
+    \@columnmodefalse%
+    \startmulticolumn%
+    \edef\rest{10}% groter als 0
+	\whiledo{ \( \numexpr\value{Generation} - 1 < \generations \) \and \( \rest > 0 \) }{%
+		\ifthenelse{\value{NewGeneration} = \value{grpsNumber}}{%
+			\stoplist
+			\multiply\c@NewGeneration by 2%
+			\typeout{Generation \arabic{Generation}  number: \arabic{grpsNumber} -- \arabic{NewGeneration}}%
+			\subsection*{\grpsTvoorouder{\arabic{Generation}}}
+			\addcontentsline{toc}{subsection}{\grpsTvoorouder{\arabic{Generation}}}
+			\startlist
+		 }{}%
+		 \directlua{%
+		 h,rest = grps.get(\arabic{grpsNumber})
+		 tex.print("\\edef\\handle{"..h.."}")
+		 tex.print("\\edef\\rest{"..rest.."}")
+		 }%
+		 %\edef\handle{\directlua{tex.print(grps.get(\arabic{grpsNumber}))}}%
+		 \typeout{handle=\handle, rest=\rest}%
+		 \ifx\handle\empty{}\else%
+		\item[\arabic{grpsNumber}]
+		\grpsFirstPerson{\handle}%
+		\fi%
+		\stepcounter{grpsNumber}%
+		\ifthenelse{\value{NewGeneration} = \value{grpsNumber}}{\stepcounter{Generation}}{}%
+	}%
+	\stoplist%
+	\stopmulticolumn%
+	}
