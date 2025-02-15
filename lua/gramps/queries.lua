@@ -4,7 +4,7 @@ local q={}
 
 local TheDataBase="sqlite.db"
 
------------------------------------ 
+-----------------------------------
 -- database setup
 -----------------------------------
 local driver = require('luasql.sqlite3')
@@ -14,14 +14,18 @@ local db = nil
 function q.init(database)
     q.close()
     q.database = database or TheDataBase
-    print(database)
+
+    --print("\ndatabase: ",q.database,db)
+
     env = assert(driver.sqlite3(),"problem in sqlite3 copling")
     db = assert(env:connect(q.database),"No conection to "..q.database)
-    print(type(db))
+
+    --[[print(type(db))
     local r= q.get_person_from_id("I0018")
     print(r[1].given_name)
     local r= q.get_person_from_id("I7141")
     if r[1] then print(r[1].given_name) end
+    ]]--
 end
 
 function q:close()
@@ -32,9 +36,9 @@ function q:close()
     db=nil
 end
 
------------------------------------ 
+-----------------------------------
 --
------------------------------------ 
+-----------------------------------
 
 local index_person_handle_ref = {
     events=8,
@@ -42,9 +46,9 @@ local index_person_handle_ref = {
     parent_family=10,
     media=11}
 
------------------------------------ 
+-----------------------------------
 --
------------------------------------ 
+-----------------------------------
 
 local function Where(column,handles)
     local where = ""
@@ -74,7 +78,7 @@ local function proces_query(query,blob)
     --print(query)
 
     if db==nil then q.init() end
-    
+
     for offset = 0,20099,chunk do
         local limit=" LIMIT "..tostring(chunk).." OFFSET "..tostring(offset)
         --print(query..limit)
@@ -226,14 +230,14 @@ function q.get_person_from_media(handle,blob)
 end
 
 function q.get_metadata(setting)
-    local res=proces_query("SELECT setting AS 'setting', value AS 'blob_data' FROM metadata "..Where('setting',setting),true)
+    local res=proces_query("SELECT setting as setting, value as blob_data FROM metadata "..Where('setting',setting),true)
     return res
 end
 
 if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then
     --print(Where({'1','2','3'}))
     --print(Where(nil,{'1','2','3'}))
-    
+
     print(q.get_handle_from_id('I0018'))
 
     --p=q.get_person_from_id('I2604')
@@ -243,7 +247,6 @@ if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then
     p=q.get_person_from_id('I0018')
     f=q.get_person_family(p[1].handle)
     if f then print("FATHER",f[1].father_handle) end
-
 
     --f=q.get_parent_family('c5db97fcf0c2c7f7442c525591b')
     --if f then print("FATHER",f.father_handle) end

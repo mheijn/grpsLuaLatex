@@ -5,7 +5,7 @@ util=require("gramps.util")
 --local gettext = require("gettext")
 --local _ = gettext.gettext
 local function translate(s)
-	return(s)
+return(s)
 end
 local _=translate
 
@@ -68,59 +68,57 @@ local moths={_("January"),_("Februari"),_("March"),_("April"),_("June"),_("Jyly"
 local modifier={_("before"),_("after"),_("about"),_("range"),_("between"),_(""),_(""),_(""),_("")}
 local quality={_("estimate"),_("calculated"),_("calclated estimate")}
 
-
 local function is_empty(s,a,b)
-	if #s>0 then return(b) else return(a) end end
+if #s>0 then return(b) else return(a) end end
 ---
 -- @param d @{Gramps_date}
 -- @return text date
 function Date.date(d)
-	--print(util.dump(d))
-	s=""
-	d1=""
-	d2=""
-	
-	--os.setlocale="nl_NL.UTF-8"
-	if d[4][1]>0 then d1=tostring(d[4][1]) end
-	if d[4][2]>0 then d1=d1..is_empty(d1,""," ")..moths[d[4][2]] end
-	if d[4][3]>0 then d1=d1..is_empty(d1,""," ")..d[4][3] end
-	
-	if d[2]>3 then
-		if d[4][5]>0 then d2=tostring(d[4][5]) end
-		if d[4][6]>0 then d2=d2..is_empty(d2,""," ")..moths[d[4][6]] end
-		if d[4][7]>0 then d2=d2..is_empty(d2,""," ")..d[4][7] end
-	end
-	
-	if d[3]>0 then s=quality[d[3]] end
-	if d[2]>0 then s=modifier[d[2]] end
-	s=s..is_empty(s,""," ")..d1
-	
-	if d[2]>3 then
-		s = s.." - "..d2
-	end
-	return s
+--print(util.dump(d))
+s=""
+d1=""
+d2=""
+
+--os.setlocale="nl_NL.UTF-8"
+if d[4][1]>0 then d1=tostring(d[4][1]) end
+if d[4][2]>0 then d1=d1..is_empty(d1,""," ")..moths[d[4][2]] end
+if d[4][3]>0 then d1=d1..is_empty(d1,""," ")..d[4][3] end
+
+if d[2]>3 then
+if d[4][5]>0 then d2=tostring(d[4][5]) end
+if d[4][6]>0 then d2=d2..is_empty(d2,""," ")..moths[d[4][6]] end
+if d[4][7]>0 then d2=d2..is_empty(d2,""," ")..d[4][7] end
+end
+
+if d[3]>0 then s=quality[d[3]] end
+if d[2]>0 then s=modifier[d[2]] end
+s=s..is_empty(s,""," ")..d1
+
+if d[2]>3 then
+s = s.." - "..d2
+end
+return s
 end
 
 ---
 -- @param d @{Gramps_date}
 -- @return d1-m1-y1/d2-m2-y2
 function Date.tex(d)
-	local s=""
-	local d1=""
-	local d2=""
+local s=""
+local d1=""
+local d2=""
 
+--os.setlocale="nl_NL.UTF-8"
+if d[4][3]>0 then d1=tostring(d[4][3]) end
+if d[4][2]>0 then d1=d1..is_empty(d1,"","-")..d[4][2] end
+if d[4][1]>0 then d1=d1..is_empty(d1,"","-")..d[4][1] end
 
-	--os.setlocale="nl_NL.UTF-8"
-	if d[4][3]>0 then d1=tostring(d[4][3]) end
-	if d[4][2]>0 then d1=d1..is_empty(d1,"","-")..d[4][2] end
-	if d[4][1]>0 then d1=d1..is_empty(d1,"","-")..d[4][1] end
-
-	if d[2]>3 then
-		if d[4][7]>0 then d2=tostring(d[4][7]) end
-		if d[4][6]>0 then d2=d2..is_empty(d2,"","-")..d[4][6] end
-		if d[4][5]>0 then d2=d2..is_empty(d2,"","-")..d[4][5] end
-	end
-	if d[2]>3 then s = d1.."/"..d2
+if d[2]>3 then
+if d[4][7]>0 then d2=tostring(d[4][7]) end
+if d[4][6]>0 then d2=d2..is_empty(d2,"","-")..d[4][6] end
+if d[4][5]>0 then d2=d2..is_empty(d2,"","-")..d[4][5] end
+end
+if d[2]>3 then s = d1.."/"..d2
     elseif d[2]==1 then s="/"..d1
     elseif d[2]==2 then s=d1.."/"
     else s=d1 end
@@ -130,7 +128,7 @@ function Date.tex(d)
     end
 
     --print("date.tex",s,d1,d2)
-	return s
+return s
 end
 
 ---
@@ -242,8 +240,6 @@ function Date.calculateEasterDay(year)
 
     return month, day, dayOfYear, (days_in_years(year) + dayOfYear)
 end
-
-
 
 if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then
     local days=Date.days_from_year_0(2000,0,0)

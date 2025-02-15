@@ -49,14 +49,14 @@ end
 --local function texconsole(txt)  print("\\typeout{"..color_tex('cyan',txt).."}") end
 local function texconsole(t,...)
     tex.print("\\Package"..t.."{"..place_message(txt).."}{"..glue_args(...).."}{}")
+    io.write(t..":"..glue_args(...).."\n")
 end
 
 setmetatable(Print, {
-    __call = function(_,handle)
-        return Print.print(handle)
+    __call = function(_,...)
+        return Print.print(...)
     end,
 })
-
 
 local sprint = io.write
 if tex then
@@ -76,15 +76,23 @@ else
     Print.m = function(...) Print(color_text("cyan",glue_args(...))) end
 end
 
+function Print.format(form,arg)  return string.format("%"..form,arg) end
+Print.procent = "%"
+
+function Print.def(key,value) Print.s("\\def\\"..key.."{"..value.."}") end
+function Print.gdef(key,value) Print.s("\\gdef\\"..key.."{"..value.."}") end
+function Print.xdef(key,value) Print.s("\\xdef\\"..key.."{"..value.."}") end
+function Print.edef(key,value) Print.s("\\edef\\"..key.."{"..value.."}") end
+
 if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then
     local s="/home/marc/Nexcloud/tes.lua"
     local filename = string.match(s, "[^\\/]+$")
     print(filename)
-    Print("Gewoon")
+    Print("Gewoon"," Dood gewoon")
     Print.s("S print\n")
     Print.i("info")
     Print.e("error")
-    Print.w("warning")
+    Print.w("warning"," waarschuwing")
 else
     return(Print)
 end

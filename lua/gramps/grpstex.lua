@@ -10,10 +10,29 @@ local print = require("gramps.output")
 --local = require("")
 --format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
 
-OPTION = {O_CENTRAL=1,O_SPOUSE=2,O_PARENTS=3,O_CHILDREN=4,O_SPOUSE_HANDLE=5,O_LEVEL=6,
-    LONG=0,LIFEEVENTS=1,VOCATIONAL=2,RESIDENCE=3,RELATIONS=4,PARENTS=5,CHILDREN=6,FULNAME=7,SPOUSEPARENTS=8,MEDIA=9}
-
-
+OPTION = {O_CENTRAL=1,
+    O_SPOUSE=2,
+    O_CHILDREN=3,
+    O_PARENTS=4,
+    O_SPOUSE_HANDLE=5,
+    O_LEVEL=6,
+    O_MAXMEDIA=7,
+    LONG=0,
+    LIFEEVENTS=1,
+    VOCATIONAL=2,
+    RESIDENCE=3,
+    RELATIONS=4,
+    PARENTS=5,
+    CHILDREN=6,
+    FULLNAME=7,
+    SPOUSEPARENTS=8,
+    MEDIA=9,
+    ITEMIZE=10,
+    SIBLINGS=11}
+grps.OPTION = OPTION
+---
+-- @param a1 if a2==nil a1 are/is the option(s) set else a2
+-- @param a2 existing options
 local function set_options(a1,a2)
     local res = 0
     local op = 0
@@ -21,57 +40,60 @@ local function set_options(a1,a2)
         op = a2
         res = a1
     end
---print(res,util.dump(op))
 
     if type(op)=="table" then
         for i,v in ipairs(op) do res=res | 2^v end
     else
-        res = res & 2^op
+        res = res | 2^op
+ --print.i("set_options:",res,util.dump(op))
     end
 
     return res
 end
+grps.set_options = set_options
 
 local function remove_options(option,op)
     if type(op)=="table" then
         for i,v in ipairs(op) do option=option ~ 2^v end
     else
-        option = option | 2^op
+        option = option ~ 2^op
     end
 
-    return options
+    return option
 end
+grps.remove_options=remove_options
 
 local function bin_set(getal,bin)
 --print(getal,2^bin,(getal&(2^bin) ~=0 ))
     return (getal&(2^bin) ~=0 )
 end
 
-local option_parents  = set_options({OPTION.FULNAME})
-local option_children = set_options({OPTION.LIFEEVENTS,OPTION.VOCATIONAL,OPTION.RESIDENCE,OPTION.RELATIONS,OPTION.CHILDREN,OPTION.SPOUSEPARENTS})
-local option_central  = set_options({OPTION.FULNAME,OPTION.LIFEEVENTS,OPTION.VOCATIONAL,OPTION.RESIDENCE,OPTION.RELATIONS,OPTION.CHILDREN,OPTION.
+function default_options()
+    local option_parents  = set_options({OPTION.FULLNAME})
+    local option_children = set_options({OPTION.LIFEEVENTS,OPTION.VOCATIONAL,OPTION.RESIDENCE,OPTION.RELATIONS,OPTION.CHILDREN,OPTION.SPOUSEPARENTS})
+    local option_central  = set_options({OPTION.FULLNAME,OPTION.LIFEEVENTS,OPTION.VOCATIONAL,OPTION.RESIDENCE,OPTION.RELATIONS,OPTION.CHILDREN,OPTION.
     SPOUSEPARENTS,OPTION.PARENTS,OPTION.MEDIA})
-local option_spouse   = set_options({OPTION.FULNAME,OPTION.LIFEEVENTS,OPTION.VOCATIONAL,OPTION.RESIDENCE,OPTION.RELATIONS,OPTION.CHILDREN,OPTION.
+    local option_spouse   = set_options({OPTION.FULLNAME,OPTION.LIFEEVENTS,OPTION.VOCATIONAL,OPTION.RESIDENCE,OPTION.RELATIONS,OPTION.CHILDREN,OPTION.
     SPOUSEPARENTS,OPTION.PARENTS})
-
+    local default_opts = {option_central,option_spouse,option_children,option_parents,0,1}
+    return default_opts
+end
+grps.default_options = default_options
 
 local option_lastchildren = set_options({})
 
-local default_opts = {option_central,option_spouse,option_parents,option_children,0,1}
-
-
 function unescape(str)
-	if not tex then return str end
-	if type(str)=="string" then
-		res = string.gsub(str,"_","\\_")
-		res = string.gsub(res,"~","$\\sim$")
-		res = string.gsub(res,";",";\\-")
-		res = string.gsub(res,"#","\\#")
-		res = string.gsub(res,'"','``')
-	else
-		res = "TYPE: "..type(str)
-	end
-	return res
+if not tex then return str end
+if type(str)=="string" then
+res = string.gsub(str,"_","\\_")
+res = string.gsub(res,"~","$\\sim$")
+res = string.gsub(res,";",";\\-")
+res = string.gsub(res,"#","\\#")
+res = string.gsub(res,'"','``')
+else
+res = "TYPE: "..type(str)
+end
+return res
 end
 
 function file_exists(filename)
@@ -97,7 +119,7 @@ function grps.gettextwidth()
 end
 
 function grps.long_print_person(handle,level,opts)
-    local opts = opts or default_opts
+    local opts = opts or default_options()
     local level = level or 3
     local options = {}
 
@@ -107,7 +129,7 @@ function grps.long_print_person(handle,level,opts)
 end
 
 function grps.short_print_person(handle,level,opts)
-    local opts = opts or default_opts
+    local opts = opts or default_options()
     local level = level or 3
     local options = {}
 
@@ -131,80 +153,89 @@ function grps.print_person(h,max_level,level,opts,person_type)
     local h=p.handle
     local pe = person.events(h)
 
-    print.i("print "..person.fullname(h))
+    local line = string.texcommand("noindent")
+    line = line..string.gdef("grpssex",p.gender)
+    line = line..string.gdef("grpsItemizeActualdepth",level)
 
-    if person_type ~= OPTION.O_CENTRAL and p.ancestornummer then
-        print.s("\\hyperlink{"..p.gramps_id.."}{")
+    -- Format name person with hyperlink and index
+    local sp=""
+    if person_type ~= OPTION.O_CENTRAL and (p.ancestornummer or p.kwartiernummer) then
+        sp=sp.."\\hyperlink{"..p.gramps_id.."}{"
     else
-        print.s("\\sethypertarget{"..p.gramps_id.."}{")
+        sp=sp.."\\sethypertarget{"..p.gramps_id.."}{"
     end
-    if bin_set(opt,OPTION.FULNAME) then print.s(person.fullname(h)) else print.s(person.firstname(h)) end
-    print.s("}")
 
-    print.s("\\index{"..person.familyname(h).."!"..person.firstname(h)..person(h).gramps_id.."@"..person.firstname(h).."}")
-    if person_type ~=OPTION.O_PARENTS then print.s(". ") end
+    if bin_set(opt,OPTION.FULLNAME) then
+        sp=sp..person.fullname(h)
+    else
+        sp=sp..person.firstname(h)
+    end
+    sp=sp.."}"
 
+    sp=sp.."\\index{"..person.familyname(h).."!"..person.firstname(h)..person(h).gramps_id.."@"..person.firstname(h).."}"
+    if person_type ~=OPTION.O_PARENTS  and not bin_set(opt,OPTION.ITEMIZE) then sp=sp..".\n"end
 
---event.LifeEvents={event.TYPE.BIRTH, event.TYPE.BAPTISM, event.TYPE.DEATH,
---			event.TYPE.BURIAL, event.TYPE.CREMATION, event.TYPE.ADOPT}
-    --print.i("Type van pe is ",type(pe))
+    line = line .. sp
+
+    sentence = person_type ~=OPTION.O_PARENTS
+    nopoint  = person_type ==OPTION.O_PARENTS
+    --------- Events --------------
     if pe and bin_set(opt,OPTION.LIFEEVENTS) then
-        local s = get_tex_event_by_type(pe,events.TYPE.BIRTH)
-        s = util.comma_con(s,get_tex_event_by_type(pe,events.TYPE.BABTISM))
-        s = util.comma_con(s,get_tex_event_by_type(pe,events.TYPE.DEATH))
-        s = util.comma_con(s,get_tex_event_by_type(pe,events.TYPE.BURIAL))
-        if bin_set(opt,OPTION.LONG) then
-            s=util.is_empty(s,"",hijzij(p)..s..". ")
-        else
-            s=util.is_empty(s,"",s..". ")
-        end
-        if #s>0 then print(s) end
+        sl = set_events(opt,p,pe,events.LifeEvents,sentence,nopoint)
+        line = line .. sl
     end
 
     if pe and bin_set(opt,OPTION.VOCATIONAL) then
-        s = get_tex_event_by_type(pe,events.TYPE.OCCUPATION)
-        s = util.comma_con(s,get_tex_event_by_type(pe,events.TYPE.RETIREMENT))
-        s = util.comma_con(s,get_tex_event_by_type(pe,events.TYPE.ELECTED))
-        s = util.comma_con(s,get_tex_event_by_type(pe,events.TYPE.MILITARY_SERV))
-        s = util.comma_con(s,get_tex_event_by_type(pe,events.TYPE.ORDINATION))
-        s = util.comma_con(s,get_tex_event_by_type(pe,events.TYPE.EDUCATION))
-        s = util.comma_con(s,get_tex_event_by_type(pe,events.TYPE.DEGREE))
-        s = util.comma_con(s,get_tex_event_by_type(pe,events.TYPE.GRADUATION))
-        if bin_set(opt,OPTION.LONG) then
-            s=util.is_empty(s,"",hijzij(p)..s..". ")
-        else
-            s=util.is_empty(s,"",s..". ")
-        end
-        if #s>0 then print(s) end
-        s=util.is_empty(s,"",hijzij(p)..s..". ")
+        sl = set_events(opt,p,pe,events.Vocational,sentence,nopoint)
+        line = line .. sl
+    end
+
+    if pe and bin_set(opt,OPTION.VOCATIONAL) then
+        sl = set_events(opt,p,pe,events.Academic,sentence,nopoint)
+        line = line .. sl
     end
 
     if pe and bin_set(opt,OPTION.RESIDENCE) then
-        s = get_tex_event_by_type(pe,events.TYPE.RESIDENCE)
-        if bin_set(opt,OPTION.LONG) then
-            s=util.is_empty(s,"",hijzij(p)..s..". ")
-        else
-            s=util.is_empty(s,"",s..". ")
+        sl = set_events(opt,p,pe,events.Residence,sentence,nopoint)
+        line = line .. sl
+    end
+
+    -------- Parents ------------------
+    if bin_set(opt,OPTION.PARENTS) and person_type ~= OPTION.O_CHILDREN then
+        line=line..grps.parents(h,max_level,level,opts)
+    end
+
+    --------- Siblings ----------------
+    if bin_set(opt,OPTION.SIBLINGS)  then
+        line=line..grps.siblings(h,max_level,level,opts)
+    end
+
+    ----- Pictures --------
+    local spic = ""
+    if bin_set(opt,OPTION.MEDIA) and p.blob_data then
+        local nr_pic=1
+        local ac_pic=1
+        while p.blob_data[11][ac_pic] do
+            if nr_pic > opts[OPTION.O_MAXMEDIA] then break end;
+            local ph=p.blob_data[11][ac_pic][5]
+            local pic = grps.picture(ph)
+            if #pic>0 then
+                nr_pic = nr_pic + 1
+                spic = spic.. pic
+            end
+            ac_pic = ac_pic + 1
         end
-        if #s>0 then print(s) end
-        s=util.is_empty(s,"",hijzij(p)..s..". ")
     end
 
-    if bin_set(opt,OPTION.PARENTS) then
-        grps.print_parents(h,max_level,level,opts)
-    end
+    if p.kwartiernummer then line=line .. spic end
 
-    local picture_printed=false
-    if bin_set(opt,OPTION.MEDIA) and p.blob_data and p.blob_data[11][1] then
-        ph=p.blob_data[11][1][5]
-        grps.picture(ph)
-        picture_printed=true
-    end
     ------ relaties --------
+    local rs=""
     local kwartier_family_handle=""
     local family_nr=0
     if bin_set(opt,OPTION.RELATIONS) then
         local fams = person.spouses(p.handle)
+        --if #fams>0 and bin_set(opt,OPTION.ITEMIZE) then print("\\begin{itemize}\\item[]start") end
         for i,fh in ipairs(fams) do
             --dprint("\nfamily handle: "..fh)
 
@@ -231,19 +262,21 @@ function grps.print_person(h,max_level,level,opts,person_type)
                 if calling_spouse~=spouse then
                     --print("\\\\calsp="..calling_spouse.." \\\\sp="..spouse.." \\\\h="..p.handle)
                     --if not picture_printed then print("\\\\") end
-                    if not picture_printed then print("\n\n\n\\noindent") end
+                    --if not picture_printed then print("\n\n\n\\noindent") end
 
                     opts[OPTION.O_SPOUSE_HANDLE] = p.handle
-                    if #fams > 1 then print.s("("..i..")") end
-                    grps.print_relation(fh,p.gender,i,opt)
-                    grps.print_person(spouse,max_level,level,opts,OPTION.O_SPOUSE)
+                    if #fams > 1 then rs=rs .."("..i..")" end
+                    rs = rs .. grps.relation(fh,p,i,opt)
+                    if spouse then
+                        rs = rs .. grps.print_person(spouse,max_level,level+1,opts,OPTION.O_SPOUSE)
+                    end
 
                     --if bin_set(opt,OPTION.PARENTS) then
                     --    grps.print_parents(spouse,max_level,level,opts)
                     --end
 
                     if bin_set(opt,OPTION.CHILDREN) then
-                        grps.print_children(fh,max_level,level,opts)
+                        rs = rs .. grps.children(fh,max_level,level,opts)
                     end
                 end
             end
@@ -251,67 +284,84 @@ function grps.print_person(h,max_level,level,opts,person_type)
 
         if  #kwartier_family_handle>1 then
             if p.gender==1 and spouse ~= "" then
-                if bin_set(opt, OPTION.LONG) then
-                    if family_nr > 0 then
-                        print("\\item[\\gtrsymMarried$^{"..family_nr.."}$]")
+                if bin_set(opt, OPTION.LONG) or bin_set(opt,OPTION.ITEMIZE) then
+                    if #fams > 1 then
+                        rs = rs .. "\\item[\\gtrsymMarried$^{"..family_nr.."}$]"
                     else
-                        print("\\item[\\gtrsymMarried]")
+                        rs = rs .. "\\item[\\gtrsymMarried]"
                     end
                 end
-                grps.print_relation(kwartier_family_handle,p.gender,family_nr,opt)
+                rs = rs .. grps.relation(kwartier_family_handle,p,family_nr,opt)
             else
                 if bin_set(opt, OPTION.CHILDREN) then
                     --print("LF1\\\\")
-                    if family_nr > 0 then print.s("("..family_nr..")") end
-                    grps.print_children(kwartier_family_handle,max_level,level,opts)
+                    if #fams > 1 then rs = rs.." ("..family_nr..") " end
+                    rs = rs .. grps.children(kwartier_family_handle,max_level,level,opts)
                 end
             end
         end
+
+        --if #fams>0 and bin_set(opt,OPTION.ITEMIZE) then print("\\end{compactitemize}") end
     end
+    line = line ..rs
+
+    if not p.kwartiernummer then line=line .. spic end
+
+    --if person_type ~= OPTION.O_PARENTS then
+    line = line.."\\stopitemize{"..(level).."}" --end
+
+    if level == 1 then
+        print("\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        print(line)
+        --io.write(line)
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+    end
+    return line
 end
 
-
-function grps.print_relation(fh,man,times,opt)
+function grps.relation(fh,p,times,opt)
     local f = family[fh]
     local fe = family.events(f.handle)
     --dprint(util.dump(f))
 
-    local ss,s,main_handle,spouse_handle
-    if man==1 then
+    local s,main_handle,spouse_handle
+
+    --token.set_macro("grpssex",man,"global")
+    s=string.gdef("grpssex",p.gender)
+    --token.set_macro("grps@itemize@actualdepth"
+
+    if p.gender==1 then
         main_handle = f.father_handle
         spouse_handle = f.mother_handle
-        ss="\\grpsTHij "
+        --ss="\\grpsTHij "
     else
         spouse_handle = f.father_handle
         main_handle = f.mother_handle
-        ss="\\grpsTZij "
+        --ss="\\grpsTZij "
     end
 
     if fe then
-        s = get_tex_event_by_type(fe,events.TYPE.ENGAGEMENT)
-        s = util.comma_con(s,get_tex_event_by_type(fe,events.TYPE.MARR_ALT))
-        s = util.comma_con(s,get_tex_event_by_type(fe,events.TYPE.MARRIAGE))
-        s = util.comma_con(s,get_tex_event_by_type(fe,events.TYPE.DIVORCE))
-        s = util.comma_con(s,get_tex_event_by_type(fe,events.TYPE.ANNULMENT))
-        s = util.comma_con(s,get_tex_event_by_type(fe,events.TYPE.MARR_SETTL))
-        s = util.comma_con(s,get_tex_event_by_type(fe,events.TYPE.MARR_LIC))
-        s = util.comma_con(s,get_tex_event_by_type(fe,events.TYPE.MARR_CONTR))
-        s = util.comma_con(s,get_tex_event_by_type(fe,events.TYPE.MARR_BANNS))
-        s = util.comma_con(s,get_tex_event_by_type(fe,events.TYPE.DIV_FILING))
-    else
-        s=" \\grpsTkoppelde"
+        sfe = set_events(opt,p,fe,events.Family,true,true)
     end
-    
+    if #sfe==0 then
+        if bin_set(opt,OPTION.LONG) then
+            sfe=HijZij(p).."\\grpsTkoppelde"
+        else
+            sfe="$\\times$"
+        end
+    end
+
     if bin_set(opt,OPTION.LONG) then
-        s=util.is_empty(s,ss..s.." \\grpsTmet ",ss..s.." \\grpsTmet ")--..person.fulname(spouse_handle)..". ")
+        s = s..sfe .." \\grpsTmet "
     else
-        s=util.is_empty(s,"$\\times$",s)--..person.fulname(spouse_handle)..". ")
+        s=s..sfe
     end
-    if #s>0 then print(s) end
-    
+
+    return s
 end
 
-function grps.print_children(fh,max_level,level,options)
+function grps.children(fh,max_level,level,options)
+    local s=""
     --print.i("children"..util.dump(options))
     if max_level>level then
         level = level + 1
@@ -320,25 +370,52 @@ function grps.print_children(fh,max_level,level,options)
         --print(util.dump(children))
         local sorted = person.sort_person_handles(children)
         if #children > 0 then
-            print("\\begin{grampslist"..util.roman(level).."}")
+            s=s.."\\begin{grampslist"..util.roman(level).."}"
             for j,ic in ipairs(sorted) do
-                print("\\item["..j.."]")--..person.fulname(children[ic[1]]))
+                s=s.."\\item["..j.."]"
+
                 local child = children[ic[1]]
-                --
                 local ref_nummer = person[child].kwartiernummer  or person[child].ancestornummer
+
                 if  ref_nummer then
-                    print.s("\\hyperlink{"..person[child].gramps_id.."}{")
-                    print.s(person.fullname(children[ic[1]]).." ("..ref_nummer.."$\\rightarrow$}).")
+                    s=s.."\\hyperlink{"..person[child].gramps_id.."}{"..
+                        person.fullname(children[ic[1]]).." ("..ref_nummer.."$\\rightarrow$})."
                 else
-                    grps.print_person(children[ic[1]],max_level,level,options,OPTION.O_CHILDREN)
+                    s=s..grps.print_person(children[ic[1]],max_level,level,options,OPTION.O_CHILDREN)
                 end
             end
-            print("\\end{grampslist"..util.roman(level).."}")
+            s=s.."\\end{grampslist"..util.roman(level).."}"
         end
     end
+    return s
 end
 
-function grps.print_parents(ph,max_level,level,options)
+function grps.siblings(ph,max_level,level,options)
+    s=""
+    local p=person[ph]
+    local fam = person.parents(ph)
+    for i,fh in ipairs(fam) do
+        local sibls = family.get_children(fh)
+        local sorted = person.sort_person_handles(sibls)
+        if #sibls > 0 then
+            s=s.."\\begin{grampslist"..util.roman(level).."}"
+            for j,ic in ipairs(sorted) do
+                s=s.."\\item["..j.."]"
+                local sib = sibls[ic[1]]
+
+                if sib == ph then
+                    --
+                else
+                    s=s..grps.print_person(sib,max_level,level+1,options,OPTION.O_CHILDREN)
+                end
+            end
+            s=s.."\\end{grampslist"..util.roman(level).."}"
+        end
+    end
+    return s
+end
+
+function grps.parents(ph,max_level,level,options)
     s=""
     --print(ph,util.dump(options))
     local p=person[ph]
@@ -351,80 +428,120 @@ function grps.print_parents(ph,max_level,level,options)
         if f.father_handle or f.mother_handle then
             --print(options.relation,OPTION.LONG)
             --dprint("parents 1 ",util.dump(options))
-            if bin_set(options[OPTION.O_PARENTS],OPTION.LONG) then
-                print(ZoonDochter(p))
+            local do_itemize  = bin_set(options[OPTION.O_CENTRAL],OPTION.ITEMIZE)
+            if bin_set(options[OPTION.O_PARENTS],OPTION.LONG) then -- LONG --
+                if do_itemize then s=s.."\\doitem[-]{}" end
+                s=s..ZoonDochter(p)
+                if  f.father_handle then
+                    if do_itemize then s=s.."\\doitem[V]{}" end
+                    s=s..grps.print_person(f.father_handle,max_level,level+1,options,OPTION.O_PARENTS)
+                end
+                if do_itemize then s=s.."\\doitem[ ]{}" end
+                if  f.father_handle and f.mother_handle then s=s.." \\grpsTen " end
+                if f.mother_handle then
+                    if do_itemize then s=s.."\\doitem[M]{}" end
+                    s=s..grps.print_person(f.mother_handle,max_level,level+1,options,OPTION.O_PARENTS)
+                end
+                s=s ..".\n"
             else
-                print.s("(")
-            end
-            if  f.father_handle then grps.print_person(f.father_handle,max_level,level,options,OPTION.O_PARENTS) end
-            if  f.father_handle and f.mother_handle then
-                if bin_set(options[OPTION.O_PARENTS],OPTION.LONG) then print.s(" \\grpsTen ") else print.s(" $\\times$ ") end
-            end
-            if f.mother_handle then grps.print_person(f.mother_handle,max_level,level,options,OPTION.O_PARENTS) end
-
-            --dprint("parents 2 ",util.dump(options))
-            if bin_set(options[OPTION.O_PARENTS],OPTION.LONG) then
-                print(". ")
-            else
-                print(") ")
+                if do_itemize then
+                    if f.father_handle then
+                        s=s.."\\doitem[V]{}"
+                        s=s..grps.print_person(f.father_handle,max_level,level+1,options,OPTION.O_PARENTS)
+                    end
+                    if f.father_handle then
+                        s=s.."\\doitem[M]{}"
+                        s=s..grps.print_person(f.mother_handle,max_level,level+1,options,OPTION.O_PARENTS)
+                    end
+                else
+                    s=s.."("
+                    if f.father_handle then s=s..grps.print_person(f.father_handle,max_level,level+1,options,OPTION.O_PARENTS) end
+                    if f.father_handle and f.mother_handle then s=s.." $\\times$ " end
+                    if f.mother_handle then s=s..grps.print_person(f.mother_handle,max_level,level+1,options,OPTION.O_PARENTS) end
+                    s=s..")"
+                end
             end
         end
     end
+    return s
+end
+
+function set_events(opt,p,pe,event_types,sentence,nopoint)
+    if nil == sentence then sentence = true end
+    if nil == nopoint then nopoint =  false end
+    e ={}
+    for _,t in ipairs(event_types) do
+        table.insert(e,get_tex_event_by_type(pe,t))
+    end
+    if bin_set(opt,OPTION.ITEMIZE) then
+        s=table.join(e," ")
+    else
+        s=table.join(e,", ")
+        if #s>0 then
+            if bin_set(opt,OPTION.LONG) then
+                if sentence then s = HijZij(p)..s
+                else s = ", "..hijzij(p)..s
+                end
+            end
+            if not nopoint then s=s..". " end
+        end
+    end
+    return s
 end
 
 function get_tex_event_by_type(evs,ev_type)
     local s_ret=""
     local s=""
 --print.i("evs = ",util.dump(evs))
-	for i,eh in ipairs(evs) do
+for i,eh in ipairs(evs) do
         local ev   = events[eh]
-		local blob = ev.blob_data
+local blob = ev.blob_data
         --dprint(i,eh,blob[3][1],ev_type)
-		--io.write(util.dump(ev))
+--io.write(util.dump(ev))
         if ev_type == blob[3][1] then
-			s="\\grpsEvent{"..ev_type.."}"
+s="\\grpsEvent{"..ev_type.."}"
 
-			if blob[4] and blob[4][4] then
-				s=s.."{"..blob[4][1].."}"
-				s=s.."{"..blob[4][2].."}"
-				s=s.."{"..blob[4][3].."}"
-				s=s.."{"..blob[4][4][3]..
-					util.is_zero(blob[4][4][2],"","-"..blob[4][4][2])..
-					util.is_zero(blob[4][4][1],"","-"..blob[4][4][1]).."}"
-			else
-				s=s.."{0}{0}{0}{}"
-				--io.write(util.dump(blob))
-			end
-			s=s.."{"..place.name(ev.place).."}"
-			if blob[4] and blob[4][4] and blob[4][4][5] and blob[4][2]>3 then
-				s=s.."{"..blob[4][4][7]..
-					util.is_zero(blob[4][4][6],"","-"..blob[4][4][6])..
-					util.is_zero(blob[4][4][5],"","-"..blob[4][4][5]).."}"
-			else
-				s=s.."{}"
-			end
-			s=s.."{}{"..unescape(ev.description).."}"
+if blob[4] and blob[4][4] then
+s=s.."{"..blob[4][1].."}"
+s=s.."{"..blob[4][2].."}"
+s=s.."{"..blob[4][3].."}"
+s=s.."{"..blob[4][4][3]..
+util.is_zero(blob[4][4][2],"","-"..blob[4][4][2])..
+util.is_zero(blob[4][4][1],"","-"..blob[4][4][1]).."}"
+else
+s=s.."{0}{0}{0}{}"
+--io.write(util.dump(blob))
+end
+s=s.."{"..place.name(ev.place).."}"
+if blob[4] and blob[4][4] and blob[4][4][5] and blob[4][2]>3 then
+s=s.."{"..blob[4][4][7]..
+util.is_zero(blob[4][4][6],"","-"..blob[4][4][6])..
+util.is_zero(blob[4][4][5],"","-"..blob[4][4][5]).."}"
+else
+s=s.."{}"
+end
+s=s.."{}{"..unescape(ev.description).."}"
         else
             s=""
         end
         s_ret = util.comma_con(s_ret,s)
-	end
-	return s_ret
+end
+return s_ret
 end
 
 local function get_textree_event_by_type(h,ev_type)
     evs = person.events(h)
     local s=""
     local plus =""
-	if evs then for i,eh in ipairs(evs) do
+if evs then for i,eh in ipairs(evs) do
         local ev   = events[eh]
-		local blob = ev.blob_data
+local blob = ev.blob_data
         if ev_type == blob[3][1] then
             if blob[4] and blob[4][4] then
             --print(util.dump(blob[4][4]))
                 s = s.."{"..blob[4][4][3]..
-					util.is_zero(blob[4][4][2],"","-"..blob[4][4][2])..
-					util.is_zero(blob[4][4][1],"","-"..blob[4][4][1]).."}"
+util.is_zero(blob[4][4][2],"","-"..blob[4][4][2])..
+util.is_zero(blob[4][4][1],"","-"..blob[4][4][1]).."}"
             else
                 s=s.."{}"
             end
@@ -457,95 +574,129 @@ function grps.tree_person(id,fun,link)
     -- birth
     datum,plus = get_textree_event_by_type(p.handle,events.TYPE.BURIAL)
     if datum ~= "" then s=s.."burial"..plus.." = "..datum..",\n" end
+    -- kwartier nummer
+    if p.kwartiernummer then s=s.."kekule = "..p.kwartiernummer..",\n" end
     s = s.."}\n"
     return s
 end
 
+function datum(blob_datum)
+    local d=""
+    if blob_datum[4] then
+        d = util.is_zero(blob_datum[4][1],"",blob_datum[4][1].."-")..
+            util.is_zero(blob_datum[4][2],"",blob_datum[4][2].."-")..
+            util.is_zero(blob_datum[4][3],"",blob_datum[4][3])
+    end
+    return d
+end
+
+picture_published = {}
 
 function grps.picture(id)
     local m = media(id)
     local handle=m.handle
     local label=m.gramps_id
     local titel= unescape(m.desc) or ""
+    local datum = datum(m.blob_data[11]) or ""
     local x=200
     local y=200
     local persons = media.persons(handle)
+    local s=""
 
-    --print(util.dump(persons))
-    --print(util.dump(m))
+    --io.write(util.dump(m))
+
+    --s=s..util.dump(m)
+    local fig_nr
+    for fig_nr,id in ipairs(picture_published) do
+        if id == label then return "" end
+    end
+    table.insert( picture_published,label)
+    fig_nr = #picture_published
+    if #datum > 0 then titel = titel .."("..datum..")" end
+    caption = "Fig. "..fig_nr..".\\label{fig:"..label..'} '..titel
+    --s=s .. "\\addcontentsline{lof}{figure}{Figure "..fig_nr..".  "..titel.."}"
 
     local filename =media.path(handle)
-        if file_exists(filename) then
+    if file_exists(filename) then
+
         local process = io.popen("identify -format '%wx%h' "..filename)
         local result = process:read("*a")
         process:close()
         local longsize = 0.9*(grps.longsize or grps.gettextwidth())
         local x,y
-
-        --eprint("Image dimensions: " .. result.." "..longsize.."cm")  -- Example output: "800x600"
-
         for lx, ly in string.gmatch(result,'(%d+)x(%d+)') do  x=lx; y=ly   end
-        --print.i("Image "..m.path.." "..x.."X"..y)
 
         if x>y then
             longsize=longsize*0.7
         end
         y=(longsize*y)/x; x=longsize
 
-       --print.i("Image "..m.path.." "..x.."X"..y)
-
-        print('\\begin{Figure}\\vspace{-2ex}\\begin{center}%')
-        print('\\begin{tikzpicture}[x=10mm,y=10mm]')
-        print('\\node[inner sep=0pt] (PIC) {\\includegraphics[width='..x..'cm,height='..y..'cm]{'..filename..'}};')
-    --tannr=ord('A')
+        s =s..'\\begin{Figure}\\vspace{-2ex}\\begin{center}'..
+            '\\begin{tikzpicture}[x=10mm,y=10mm]'..
+            "\\addcontentsline{lof}{figure}{Figure "..fig_nr..".  "..titel.."}"..
+            '\\node[inner sep=0pt] (PIC) {\\includegraphics[width='..
+            x..'cm,height='..y..'cm]{'..filename..'}};'
 
         if #persons>0 then
-            print('\\begin{scope}[ocg={ref=REC'..label..', status=invisible, name=ok}]')
+            s=s..'\\begin{scope}[ocg={ref=REC'..label..', status=invisible, name=ok}]'
             for i,t in ipairs(persons) do
                 local tx = (t.x1*x)/100.0
                 local ty = ((100-t.y1)*y)/100.0
                 local tw = (t.x2*x)/100.0
                 local th = ((100-t.y2)*y)/100.0
-                print('\\draw[tagbox,shift=(PIC.south west)] ('..tx..','..ty..') rectangle ('..tw..','..th..');')
+                s=s..'\\draw[tagbox,shift=(PIC.south west)] ('..tx..','..ty..') rectangle ('..tw..','..th..');'
                 if #persons>1 then
-                    print('\\node[tagnumber] at ([shift=(PIC.south west)] '..(x*t.xm/100)..','..(y*(100-t.ym)/100)..') {'..i..'};')
+                    s=s..'\\node[tagnumber] at ([shift=(PIC.south west)] '..(x*t.xm/100)..','..(y*(100-t.ym)/100)..') {'..i..'};'
                 end
             end
-        print("\\node at (0,0) {\\switchocg{REC"..label.."}{\\raisebox{0pt}["..x.."cm][0cm]{\\makebox["..y.."cm]{}}}};")
---\draw[tagbox,shift=(PIC.south west)] (3.2303155339806,2.1) rectangle (3.5795388349515,1.59);
---\node[color=blue] at ([shift=(PIC.south west)] 1,1)  {11111};
-
-            print('\\end{scope}')
+            s=s.."\\node at (0,0) {\\switchocg{REC"..label.."}{\\raisebox{0pt}["..x.."cm][0cm]{\\makebox["..y.."cm]{}}}};"..
+                '\\end{scope}'
         end
-        print('\\end{tikzpicture}')
-        print('\\vspace{-3.5ex}\\\\%%')
-        --print('\\captionof{figure}{'..titel..'}\\label{fig:'..label..'}%')
-        print('\\textbf{'..titel..'\\label{fig:'..label..'}}%')
+        s=s.."\\node (T) at (0,"..(y*0.5 - 1)..") {};"
+        if #titel > 0 then
+            s=s..'\\node[above=of T, align=center, text width='..0.9*grps.gettextwidth()..'cm]  {'..caption..'};'
+        end
+        s=s.."\\node (B) at (0,"..(-y*0.5 + 1)..") {};"
+        s=s.."\\node[below=of B, align=center, text width="..0.9*grps.gettextwidth().."cm]  {"
+            --"This is a node with text that will automatically break into multiple lines based"..
+            --"on the specified text width};"
+
         --print('\\vspace{-1ex}')
+
         if #persons>0 then
             --print(' [\\switchocg{REC'..label..'}{TAGS}]\\\\%')
-            local s=""
+            local sp=""
             for i=1,#persons do
 
 --    for i,v in ipairs(persons) do
 --        print(i,util.dump(persons[i]),persons[i].handle)
-            s=s.."\\hyperlink{"..person[persons[i].handle].gramps_id.."}{("..i..") "..unescape(person.fullname(persons[i].handle)).."}"
+            sp=sp.."\\hyperlink{"..person[persons[i].handle].gramps_id.."}{("..i..")\\ "..unescape(person.fullname(persons[i].handle)).."}"
                 if i < #persons  then
-                    if 1 == #persons-1 then s=s.." and " else s=s..", " end
+                    if 1 == #persons-1 then sp=sp.." and " else sp=sp..", " end
                 end
             end
-            print('{\\small'..s..'}')
+            s=s..'{\\small'..sp..'}};'
         end
-        print('\\end{center}\\end{Figure}%')
+        s=s..'\\end{tikzpicture}'
+        s=s..'\\end{center}\\end{Figure}'
     else
         print.e("File "..m.path.." not found!")
     end
+    --io.write(s)
+    return s
 
 end
 
-function hijzij(p)
+function HijZij(p)
+    --if p==nil then return "" end
     if p.gender==1 then return "\\grpsTHij "
     else return "\\grpsTZij " end
+end
+
+function hijzij(p)
+    --if p==nil then return "" end
+    if p.gender==1 then return "\\grpsThij "
+    else return "\\grpsTzij " end
 end
 
 function ZijnHaar(p)
@@ -591,13 +742,14 @@ end
 -- local textwidth_in_cm = (textwidth_in_points / 65536) / 28.3464567
 query.close()
 
-
 if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then
     --local fh="c5db97ee058b578e47c10737e0f"
     --fh='F0001'
     --grps.print_relation(fh,1,default_options)
     --grps.print_children(fh,default_options)
-    grps.long_print_person('I0692')
+    grps.long_print_person('I0018')
+--    grps.short_print_person('I0018')
+    --grps.short_print_person('I0018')
     --grps.short_print_person('I0692')
     --grps.test()
     --hallo()

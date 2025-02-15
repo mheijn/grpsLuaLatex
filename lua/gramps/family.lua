@@ -12,14 +12,14 @@ local order = {}
 local id_handle = {}
 
 local function check_handle(req)
-	if type(req)=="string" then
-		if #req >6 then
-			handle=req
-		else
-			handle  = id_handle[req] or query.get_family_handle_from_id(req)
-		end
-	end
-	return handle
+if type(req)=="string" then
+if #req >6 then
+handle=req
+else
+handle  = id_handle[req] or query.get_family_handle_from_id(req)
+end
+end
+return handle
 end
 
 function Family:new(req)
@@ -28,39 +28,39 @@ function Family:new(req)
     local handle = check_handle(req)
 
     if families[handle] then
-		return families[handle]
-	else
-		r = query.get_family_from_handle(handle)
-		if r[1] then
-			families[handle]=r[1]
-			id_handle[r[1].gramps_id]=handle
-			return r[1]
-		else
-			return(nil)
-		end
-	end
+return families[handle]
+else
+r = query.get_family_from_handle(handle)
+if r[1] then
+families[handle]=r[1]
+id_handle[r[1].gramps_id]=handle
+return r[1]
+else
+return(nil)
+end
+end
 end
 
 local function check(handle)
-	f=Family(handle)
-	--print("check_handle",p.handle)
-	return f.handle
+f=Family(handle)
+--print("check_handle",p.handle)
+return f.handle
 end
 
 function Family.all()
-	local rf, rl = query.get_family_from_handle(nil,false)
-	for i,rf in ipairs(r) do
-		order[i]=f.handle
-		families[p.handle] = f
-	end
+local rf, rl = query.get_family_from_handle(nil,false)
+for i,rf in ipairs(r) do
+order[i]=f.handle
+families[p.handle] = f
+end
 end
 
 function Family.events(handle)
-	if Family[handle].events == nil then
+if Family[handle].events == nil then
         Family[handle].events = event.events(handle)
-		--Family[handle].events = query.get_events_from_handle(handle)
-	end
-	return Family[handle].events
+--Family[handle].events = query.get_events_from_handle(handle)
+end
+return Family[handle].events
 end
 
 local event_types = {event.TYPE.ENGAGEMENT, event.TYPE.MARRIAGE, event.TYPE.DIVORCE, event.TYPE.ANNULMENT, event.TYPE.MARR_SETTL, event.TYPE.MARR_LIC,
@@ -129,10 +129,10 @@ end
 -- Set the metatable to the module
 -------------------------------------
 local function family_iterator(order, i)
-	--print(order,key)
-	i = i + 1
+--print(order,key)
+i = i + 1
     if i <= #order then
-		--print(i,order[i])
+--print(i,order[i])
         return i, families[order[i]]
     end
 end
@@ -142,17 +142,17 @@ setmetatable(Family, {
         return Family:new(handle)
     end,
 
-	__index = function(_,handle)
-		return Family(handle)
-	end,
+__index = function(_,handle)
+return Family(handle)
+end,
 
-	__newindex = function(_,handle,p)
-		families[handle]=p
-	end,
+__newindex = function(_,handle,p)
+families[handle]=p
+end,
 
-	__pairs = function(_)
+__pairs = function(_)
         return family_iterator, order, 0  -- Return the custom iterator function, table, and initial index
-	end
+end
 })
 
 return Family

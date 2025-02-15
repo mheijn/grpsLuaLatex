@@ -1,4 +1,10 @@
-require("gramps.util")
+local util=require("gramps.util")
+local print=require("gramps.output")
+
+local cm = require("gramps.picklecommands")
+local CODE = cm.COM
+local REV_CODE = cm.RCOM
+
 local dodebug = false
 local MAX_SIZE = (2^63 - 1)
 
@@ -163,10 +169,14 @@ function Stack:copy()
     return copy
 end
 
-function Stack:last()
-    --print("last",make_string(self.pile))
-    return self.pile[#self.pile]
+function Stack:last(value)
+    if value then
+        self.pile[#self.pile]=value
+    else
+        return self.pile[#self.pile]
+    end
 end
+
 function Stack:print()
     print("STACK",make_string(self.pile))
 end
@@ -208,14 +218,53 @@ function frame:read(n)
 end
 
 function frame:readline(n)
-    local data={}
+    local str={}
     for i=self.current_frame, self.size do
         assert(i <= self.size,"Read beyound data size in FRAME")
-        table.insert(data,self.data[i])
+        table.insert(str,self.dat[i])
         self.current_frame = self.current_frame + 1
-        if self.data[i] == string.byte("\n") then break end
+        if self.dat[i] == string.byte("\n") then break end
     end
-    return data
+    return str
+end
+-----------------------------------------------------------------------------------
+--     UTF8 Decode
+-----------------------------------------------------------------------------------
+function utf8_decode(str)
+    local codepoints = {}
+    local i = 1
+    while i <= #str do
+        local c = str:byte(i)
+        if c < 128 then
+            -- 1-byte character (ASCII)
+            table.insert(codepoints, c)
+            i = i + 1
+        elseif c >= 192 and c < 224 then
+            -- 2-byte character
+            local c2 = str:byte(i + 1)
+            local code = ((c - 192) * 64) + (c2 - 128)
+            table.insert(codepoints, code)
+            i = i + 2
+        elseif c >= 224 and c < 240 then
+            -- 3-byte character
+            local c2 = str:byte(i + 1)
+            local c3 = str:byte(i + 2)
+            local code = ((c - 224) * 4096) + ((c2 - 128) * 64) + (c3 - 128)
+            table.insert(codepoints, code)
+            i = i + 3
+        elseif c >= 240 and c < 248 then
+            -- 4-byte character
+            local c2 = str:byte(i + 1)
+            local c3 = str:byte(i + 2)
+            local c4 = str:byte(i + 3)
+            local code = ((c - 240) * 262144) + ((c2 - 128) * 4096) + ((c3 - 128) * 64) + (c4 - 128)
+            table.insert(codepoints, code)
+            i = i + 4
+        else
+            error("Invalid UTF-8 character")
+        end
+    end
+    return codepoints
 end
 
 -----------------------------------------------------------------------------------
@@ -223,19 +272,23 @@ end
 -----------------------------------------------------------------------------------
 depickle = depickle or {}
 function depickle.depickle(data)
+    if dodebug then  print.i(str_to_hex(data)) end
+    if data == nil then return nil end
     depickle.stack = Stack:new()
     depickle.metastack = Stack:new()
     depickle.append = function(v) depickle.stack:push(v) end
     depickle.memo = {}
     depickle.frame  = frame:new(data)
+    depickle.fix_imports = true
     --assert(false,string.format("data %d %s",#data,data))
 
     while true do
         key = frame:read(1)[1]
-        if dodebug then print(string.format("key=%3d or %s",key,string.char(key))) end
+        if dodebug then print.i(string.format("key=%3d or %s or %s",key,string.char(key),REV_CODE[key])) end
         assert(depickle.dispatch[key],string.format("Dispatching error key=%3d or %s",key,string.char(key)))
         depickle.dispatch[key]()
         if key==STOP then
+            if dodebug then print.i("OUTPUT:\n",util.dump(depickle._Stop)) end
             return depickle._Stop
         end
     end
@@ -489,7 +542,6 @@ function depickle.load_tuple()
 end
 depickle.dispatch[TUPLE] = depickle.load_tuple
 
-
 function depickle.load_empty_tuple()
         depickle.append({})
 end
@@ -580,15 +632,16 @@ function depickle.load_obj()
         depickle._instantiate(cls, args)
 end
 depickle.dispatch[OBJ[0] ] = depickle.load_obj
-
+--]]
 function depickle.load_newobj()
-        args = depickle.stack.pop()
-        cls = depickle.stack.pop()
-        obj = cls.__new__(cls, *args)
+        args = depickle.stack:pop()
+        cls = depickle.stack:pop()
+        print.i("cls:"..cls.." args:"..table.concat(args,","))
+        obj=_G[cls](args)
         depickle.append(obj)
 end
-depickle.dispatch[NEWOBJ[0] ] = depickle.load_newobj
-
+depickle.dispatch[NEWOBJ] = depickle.load_newobj
+--[[
 function depickle.load_newobj_ex()
         kwargs = depickle.stack.pop()
         args = depickle.stack.pop()
@@ -597,15 +650,18 @@ function depickle.load_newobj_ex()
         depickle.append(obj)
 end
 depickle.dispatch[NEWOBJ_EX[0] ] = depickle.load_newobj_ex
-
+]]--
 function depickle.load_global()
-        module = depickle.readline()[:-1].decode("utf-8")
-        name = depickle.readline()[:-1].decode("utf-8")
+--        module = depickle.readline()[:-1].decode("utf-8")
+--        name = depickle.readline()[:-1].decode("utf-8")
+        module = depickle.readline()
+        name = depickle.readline()
+        print.i("load_globals:",module,name)
         klass = depickle.find_class(module, name)
         depickle.append(klass)
 end
-depickle.dispatch[GLOBAL[0] ] = depickle.load_global
-
+depickle.dispatch[GLOBAL] = depickle.load_global
+--[[
 function depickle.load_stack_global()
         name = depickle.stack.pop()
         module = depickle.stack.pop()
@@ -627,7 +683,7 @@ function depickle.load_ext2()
 end
 depickle.dispatch[EXT2[0] ] = depickle.load_ext2
 
-function depickle.load_ext4()
+function depickle.lGLOBALoad_ext4()
         code, = unpack('<i', depickle.read(4))
         depickle.get_extension(code)
 end
@@ -647,34 +703,48 @@ function depickle.get_extension(depickle, code):
         obj = depickle.find_class(*key)
         _extension_cache[code] = depickle.obj
         depickle.append(obj)
-
-function depickle.find_class(depickle, module, name):
-        # Subclasses may override this.
-        sys.audit('pickle.find_class', module, name)
-        if depickle.proto < 3 and depickle.fix_imports:
-            if (module, name) in _compat_pickle.NAME_MAPPING:
-                module, name = _compat_pickle.NAME_MAPPING[(module, name)]
-            elif module in _compat_pickle.IMPORT_MAPPING:
-                module = _compat_pickle.IMPORT_MAPPING[module]
-        __import__(module, level=0)
-        if depickle.proto >= 4 and '.' in name:
-            dotted_path = name.split('.')
+--]]
+function depickle.find_class(module, name)
+        -- Subclasses may override this.
+        --sys.audit('pickle.find_class', module, name)
+        if depickle.proto < 3 and depickle.fix_imports then
+            --if (module, name) in _compat_pickle.NAME_MAPPING then
+                --module, name = _compat_pickle.NAME_MAPPING[(module, name)]
+            --elseif compat_pickle.IMPORT_MAPPING[module] then
+               -- module = _compat_pickle.IMPORT_MAPPING[module]
+            --end
+        end
+        print.i("Require module "..module.." name:"..name)
+        if "builtins"==module then
+            _G[name] = require('builtins')[name]
+        else
+            _G[name] = require(module)
+        end
+        --__import__(module, level=0)
+        if depickle.proto >= 4 and string.find(name,'.') then
+--[[            dotted_path = string.split(name,'.')
             try:
                 return _getattribute(sys.modules[module], dotted_path)
             except AttributeError:
                 raise AttributeError(
-                    f"Can't resolve path {name!r} on module {module!r}")
-        else:
-            return getattr(sys.modules[module], name)
+                f"Can't resolve path {name!r} on module {module!r}")]]--
+        else
+            --return getattr(sys.modules[module], name)
+            return name
+        end
+end
 
 function depickle.load_reduce()
-        stack = depickle.stack
-        args = stack.pop()
-        func = stack[-1]
-        stack[-1] = depickle.func(*args)
-end
-depickle.dispatch[REDUCE[0] ] = depickle.load_reduce
+        args = depickle.stack:pop()
+        func = depickle.stack:last()
+        print.i("args:",args,"func:",func)
+        set()
+        _G[func](args)
 
+        depickle.stack:last(_G[func](args))
+end
+depickle.dispatch[REDUCE] = depickle.load_reduce
+--[[
 function depickle.load_pop()
         if depickle.stack:
             del depickle.stack[-1]
@@ -711,18 +781,13 @@ function depickle.load_binget()
 end
 depickle.dispatch[BINGET] = depickle.load_binget
 
---[[
 function depickle.load_long_binget()
-        i, = unpack('<I', depickle.read(4))
-        try:
-            depickle.append(depickle.memo[i])
-        except KeyError as exc:
-            msg = f'Memo value not found at index {i}'
-            raise UnpicklingError(msg) from None
+        local i = string.unpack('<I', string.char(table.unpack(depickle.read(4))))
+        assert(depickle.memo[i+1] ~= nil,string.format("Memo value not found at index [%d]",i))
+        depickle.append(depickle.memo[i+1])
 end
-depickle.dispatch[LONG_BINGET[0] ] = depickle.load_long_binget
+depickle.dispatch[LONG_BINGET] = depickle.load_long_binget
 
-]]--
 function depickle.load_put()
         local i = int(depickle.readline())
         assert(i >= 0, "negative PUT argument")
@@ -779,61 +844,66 @@ function depickle.load_appends()
         depickle.stack:push(list_obj)
 end
 depickle.dispatch[APPENDS] = depickle.load_appends
---[[
+
 function depickle.load_setitem()
-        stack = depickle.stack
-        value = stack.pop()
-        key = stack.pop()
-        dict = stack[-1]
-        dict[key] = depickle.value
+        local value = depickle.stack:pop()
+        local key = depickle.stack:pop()
+        local dict = depickle.stack:last()
+        dict[key] = value
 end
-depickle.dispatch[SETITEM[0] ] = depickle.load_setitem
+depickle.dispatch[SETITEM] = depickle.load_setitem
 
 function depickle.load_setitems()
-        items = depickle.pop_mark()
-        dict = depickle.stack[-1]
-        for i in range(0, len(items), 2):
-            dict[items[i] ] = depickle.items[i + 1]
+        local items = depickle.pop_mark()
+        local dict = depickle.stack:last()
+        for i=1,#items,2 do  --in range(0, len(items), 2):
+            dict[items[i]] = items[i + 1]
+        end
 end
-depickle.dispatch[SETITEMS[0] ] = depickle.load_setitems
+depickle.dispatch[SETITEMS] = depickle.load_setitems
 
 function depickle.load_additems()
-        items = depickle.pop_mark()
-        set_obj = depickle.stack[-1]
-        if isinstance(set_obj, set):
+        local items = depickle.pop_mark()
+        local set_obj = depickle.stack:last()
+        if set_obj.update then
             set_obj.update(items)
-        else:
+        else
             add = set_obj.add
-            for item in items:
+            for _,item in ipairs(items)do
                 add(item)
+            end
+        end
 end
-depickle.dispatch[ADDITEMS[0] ] = depickle.load_additems
+depickle.dispatch[ADDITEMS] = depickle.load_additems
 
 function depickle.load_build()
-        stack = depickle.stack
-        state = stack.pop()
-        inst = stack[-1]
-        setstate = getattr(inst, "__setstate__", _NoValue)
-        if setstate is not _NoValue:
-            setstate(state)
+        local states = depickle.stack:pop()
+        local inst = depickle.stack:last()
+        local setstate = inst["__setstate__"] or  nil
+        if setstate then
+            setstate(states)
             return
-        slotstate = None
-        if isinstance(state, tuple) and len(state) == 2:
-            state, slotstate = state
-        if state:
-            inst_dict = inst.__dict__
-            intern = sys.intern
-            for k, v in state.items():
-                if type(k) is str:
-                    inst_dict[intern(k)] = depickle.v
-                else:
-                    inst_dict[k] = depickle.v
-        if slotstate:
-            for k, v in slotstate.items():
-                setattr(inst, k, v)
+        end
+        local slotstate = None
+        if type(states)=='table' and #states == 2 then
+            slotstate = states[2]
+            state = states[1]
+        else
+            state=states
+        end
+        if state then
+            for k, v in pairs(state)do
+                inst[k] = v
+            end
+        end
+        if slotstate then
+            for k, v in pairs(slotstate) do
+                inst[k] = v
+            end
+        end
 end
-depickle.dispatch[BUILD[0] ] = depickle.load_build
-]]--
+depickle.dispatch[BUILD] = depickle.load_build
+
 function depickle.load_mark()
         depickle.metastack:push(depickle.stack)
         depickle.stack = Stack:new()
@@ -845,7 +915,6 @@ function depickle.load_stop()
         depickle._Stop = depickle.stack:pop()
 end
 depickle.dispatch[STOP] = depickle.load_stop
-
 
 function depickle.read(n)
         if depickle.frame then
@@ -862,14 +931,18 @@ function depickle.read(n)
 end
 
 function depickle.readline()
+        local str = ""
         if depickle.frame then
             data = depickle.frame:readline(n)
+
             if not data then
                 depickle.frame = nil
                 return depickle.file_readline(n)
             end
             assert(data[#data] == string.byte("\n"), "pickle exhausted before end of frame")
-            return string.sub(data, 1, -2)
+
+            for i=1,#data-1 do str = str..string.char(data[i]) end
+            return str
         else
             return depickle.file_readline(n)
         end
@@ -888,6 +961,21 @@ function hex_to_bytes(hex)
         table.insert(byte_array, tonumber(byte, 16))
     end
     return byte_array
+end
+
+function str_to_hex(str)
+    if not str then return "nil" end
+    local hex = {}
+    if type(str)=='table' then
+        for i = 1, #str do
+            table.insert(hex, string.format("%02X", str[i]))
+        end
+    else
+        for i = 1, #str do
+            table.insert(hex, string.format("%02X", string.byte(str, i)))
+        end
+    end
+    return table.concat(hex, " ")
 end
 
 local function old_method(p)
@@ -919,7 +1007,12 @@ if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then
 
     --print()
     --print(util.dump(old_method(p2)))
-
+-- Example usage
+    local str = "Hello, 世界"
+    local codepoints = utf8_decode(str)
+    for i, cp in ipairs(codepoints) do
+        print(string.sub(str,i,i),cp) -- Prints Unicode codepoints
+    end
 
 else
     return depickle

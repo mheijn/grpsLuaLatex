@@ -20,6 +20,40 @@ if not table.copy then function table.copy(orig)
     return copy
 end end
 
+--- delivers the next index
+--
+if not table.next then function table.next(tab,index)
+    local temp = nil
+    local totleft = #tab
+    for i,_ in pairs(tab) do
+        totleft = totleft - 1
+        if temp==index then return i,totleft end
+        temp=i
+    end
+    return 0,-1
+end end
+
+--- delivers the previous index
+--
+if not table.priv then function table.priv(t,index)
+    local temp=nil
+    for i,_ in pairs(t) do
+        if i==index then return (temp) end
+        temp=i
+    end
+    return nil
+end end
+
+--- delivers the nlast index
+--
+if not table.last then function table.last(t,index)
+    local temp=nil
+    for i,_ in pairs(t) do
+        temp=i
+    end
+    return temp
+end end
+
 if not string.bytes then function string.bytes(str)
     local bytes = {}
     for i = 1, #str do
@@ -40,22 +74,61 @@ if not string.split then function string:split(delimiter)
     return result
 end end
 
+if not string.gdef then function string.gdef(key,value)
+    return "\\gdef\\"..key.."{"..value.."}"
+end end
+
+if not string.texcommand then function string.texcommand(command)
+    return "\\"..command
+end end
+
+if not table.join then function table.join(tab,delimiter)
+    s=""
+    for i=1,#tab-1 do
+        if type(tab[i])=="string" then
+            if #tab[i]>0 then
+                if #s>0 then s=s..delimiter end
+                s=s..tab[i]
+            end
+        end
+    end
+    return s
+end end
+
 local u={}
 
+function texify(s)
+    if tex then
+        s=string.gsub(s,"\\","\\backslash")
+        s=string.gsub(s,"\n","\\newline ")
+        s=string.gsub(s,"{","$\\{$")
+        s=string.gsub(s,"}","$\\}$")
+        s=string.gsub(s,'%[',"(")
+        s=string.gsub(s,'%]',")")
+        s=string.gsub(s,"/","$/$")
+        s=string.gsub(s,'_',"\\_")
+    end
+    return s
+end
+
 function u.dump(o,gen)
-   if gen == nil then gen=0 end
+    if gen == nil then gen=0 end
 
    if type(o) == 'table' then
-      local s = '{\n'
+      local s = texify("{\n")
       for k,v in pairs(o) do
-         if type(k) ~= 'number' then k = '"'..k..'"' end
-         s =  s .. string.rep(".", gen*3)..'['..k..'] = '
-         local sn = u.dump(v,gen+1) .. ',\n'
+         if type(k) ~= 'number' then k = "'"..k.."'" end
+         s =  s .. string.rep("-", gen*3)..texify("["..k.."]")..' = '
+         local sn = u.dump(v,gen+1) .. texify(',\n')
          s = s..sn
       end
-      return string.sub(s,1,-2) ..'}'
+      if tex then
+        return string.sub(s,1,-10) .."$\\}$"
+      else
+        return string.sub(s,1,-2) .."}"
+      end
    else
-      return tostring(o)
+      return texify(tostring(o))
    end
 end
 
@@ -77,10 +150,10 @@ function u.dump_key(o,gen)
 end
 
 function u.is_zero(s,a,b)
-	if s==0 then return(a) else return(b) end end
+if s==0 then return(a) else return(b) end end
 
 function u.is_empty(s,a,b)
-	if #s>0 then return(b) else return(a) end end
+if #s>0 then return(b) else return(a) end end
 
 function u.comma_con(s1,s2)
    return s1..u.is_empty(s1,"",u.is_empty(s2,"",", "))..s2
@@ -101,7 +174,6 @@ function u.Roman(num)
    return s
 end
 
-
 function u.alphanumber(n)
   local s=""
   if n>0 then
@@ -121,6 +193,7 @@ if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then
     print(string.byte('a' ))
     print(u.alphanumber(1))
     print(u.alphanumber(27))
+    print(table,join({"een","twee","","drie",4}," ++ "))
 else
     return(u)
 end

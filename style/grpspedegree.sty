@@ -1,38 +1,146 @@
 %
 % \subsection{Ancetsor} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%
+ \def\gtrkv@treeprefix{TREE}
+ \def\gtrkv@treesuffix{}
+ \tikzset{
+	/gtr/id/.code={%
+		\xdef\gtr@gkv@idlink{#1}%
+		\xdef\gtr@gkv@id{\expandonce\gtrkv@idprefix\unexpanded{#1}\expandonce\gtrkv@idsuffix}},
+	/gtr/tree prefix/.store in=\gtrkv@treeprefix,
+	/gtr/tree suffix/.store in=\gtrkv@treesuffix,
+	/gtr/thistree/.code  ={\xdef\gtr@gkv@thistree{\expandonce\gtrkv@treeprefix\unexpanded{#1}\expandonce\gtrkv@treesuffix}},
+	/gtr/parenttree/.code={\xdef\gtr@gkv@parenttree{\expandonce\gtrkv@treeprefix\unexpanded{#1}\expandonce\gtrkv@treesuffix}},
+	/gtr/childtree/.code ={\xdef\gtr@gkv@childtree{\expandonce\gtrkv@treeprefix\unexpanded{#1}\expandonce\gtrkv@treesuffix}},
+	/gtr/lefttree/.code={\xdef\gtr@gkv@lefttree{\expandonce\gtrkv@treeprefix\unexpanded{#1}\expandonce\gtrkv@treesuffix}},
+	/gtr/righttree/.code ={\xdef\gtr@gkv@righttree{\expandonce\gtrkv@treeprefix\unexpanded{#1}\expandonce\gtrkv@treesuffix}},
+	/gtr/haschildren/.style = {%
+		name code  = {%
+			\hyperlink{\gtr@gkv@idlink}{\gtrPrintName@full (\gtrDBkekule)}%
+			%\ifdefined\gtr@gkv@lefttree\showocg{\gtr@gkv@lefttree}{$\leftnarrow$}\fi
+			%\gtr@gkv@id
+			},
+		},
+    /gtr/hasparents/.style = {%
+		name code  ={%
+			\if@grps@adobe@out@%
+				\showocg{\gtr@gkv@parenttree}{\fbox{$\uparrow$}}\else%
+				\hyperlink{GRAPH\expandonce\gtr@gkv@parenttree}{\fbox{$\uparrow$}}\fi%
+			\\\vspace{0mm}%
+				\hyperlink{\gtr@gkv@idlink}{\gtrPrintName@full (\gtrDBkekule)}%
+			},
+	},
+ }
+%%
+%% Lua function to prepare files for genealogytree
+%% base is the gramps\_id of the tree
+%% starts are the bases of the partial tree
+\begin{luacode*}
+function grps_prepare_trees(base,starts,piece)
+	for i, h in ipairs(starts) do
+		local filebase = 'data.'..base_id..'.kwartierstaat.'..gen_piece.."."..i
+		local filename = kpse.find_file(filebase)
+		if filename == nil then
+			tex.print("\\typeout{create file "..filebase.."}")
+			local file = io.open(filebase, "w")
+			if file then
+				file:write(grps.ancestor_tree_data(h,gen_piece))
+				file:close()
+			else
+				tex.print("\\typeout{Error: Could not open the file.}")
+			end
+		end
+	end
+end
+\end{luacode*}
 %% \marg{person\_handle or person\_id}
 %% \marg{maximum gennerations}
-%% \\ \cmd{\AncestorTree}\{I0018\}\{3\} =
-%% \AncestorTree{I0018}{3}
-\newcommand\AncestorTree[2]{
-\typeout{Ancestortree of:  #1 #2 generations}%
+%% \\ \cmd{\AncestorTree}\{I0018\} =
+%% \AncestorTree[]{I0018}
+%% \oarg{gen}  total amount of generations (default=3)\\
+%% \oarg{genpiece=n} cut the tree in pieces of n generations \\
+%% \oarg{adobe} pdf with a lot of scripting best seen in Acrobat Reader\\
+%% \oarg{noadobe} default\\
+\newcommand\AncestorTree[2][]{
+\typeout{Ancestortree of:  #2}%
+\setkeys{grpskeys}{gen=3,genpiece=1000,noadobe,#1}
+\if@grps@adobe@out@\directlua{do_adobe=true}\else\directlua{do_adobe=false}\fi%
 \loadgramps%
 \directlua{
-    local id = "\luaescapestring{#1}"
-    local max_gen = \luaescapestring{#2}
-    filebase = 'data.'..id..'.kwartierstaat.'..max_gen
-    local filename = kpse.find_file(filebase)
-    if filename == nil then
-        tex.print("\\typeout{create file "..filebase.."}")
-        local file = io.open(filebase, "w")
-        if file then
-            file:write(grps.ancestor_tree_data(id,max_gen))
-            file:close()
-        else
-            tex.print("\\typeout{Error: Could not open the file.}")
-        end
-    end
-}%
-\begin{tikzpicture}
+    base_id = "\luaescapestring{#2}"
+    local max_gen = \luaescapestring{\generations}
+    gen_piece = \luaescapestring{\generationpiece}
+    tree_starts = grps.set_ancestor_tree(base_id,max_gen,gen_piece)
+    %
+    grps_prepare_trees(base_id,tree_starts,gen_piece)
+	token.set_macro("page@piece@part",grps.format(".3f", (1/(2^(gen_piece-1)))-0.04 ))
+ %
+	if do_adobe then
+		tex.print("\\begin{figure}[htb]\\begin{center}\\begin{tikzpicture}")
+		tex.print("\\node[] (TREEBASE"..base_id..") at (0,0) {};")
+
+			for i, h in ipairs(tree_starts) do
+				tex.print("\\AncestorTreePart{"..base_id.."}{\\generationpiece}{"..i.."}{"..h.."}")
+			end
+		tex.print("\\end{tikzpicture}\\caption{\\label{GRAPHTREE#2}\grpsTkwartierstaatvan{#2}}\\end{center}\\end{figure}")
+	else
+		for i, h in ipairs(tree_starts) do
+			tex.print("\\begin{figure}[htb]\\begin{center}\\hypertarget{GRAPHTREE"..h.."}{}\\begin{tikzpicture}")
+			tex.print("\\node[] (TREEBASE"..base_id..") at (0,0) {};")
+			tex.print("\\AncestorTreePart{"..base_id.."}{\\generationpiece}{"..i.."}{"..h.."}")
+			tex.print("\\end{tikzpicture}")
+			tex.print("\\caption{\\grpsTkwartierstaatvan{\\fullname{"..h.."}}}")
+			tex.print("\\end{center}\\end{figure}")
+		end
+	end
+	}
+}
+%
+%% \marg{base id} \\
+%% \marg{generation piece} \\
+%% \marg{folowup number} start with 1 which is at start visible\\
+%% \marg{id parent part tree}
+\newcommand{\AncestorTreePart}[4]{
+\if@grps@adobe@out@%
+	\ifthenelse{#3 = 1}{\def\visibility{on}}{\def\visibility{off}}
+\else%
+	\def\visibility{on}%
+\fi%
+\typeout{\visibility, #1, #2, #3, #4}
+\let\gtr@gkv@childtree\undefined
+\let\gtr@gkv@lefttree\undefined
+\let\gtr@gkv@righttree\undefined
+%
+\begin{scope}[ocg={
+	name={Tree #3},
+	ref=TREE#4, 
+	visibility=\visibility, 
+	opts={radiobtngrp=myRadioButtons}
+	}]%
 \genealogytree[%
+	set position = #4#4 at TREEBASE#1,
 	template=database traditional,
 	level size=1.2cm,
-	node size=0.12\columnwidth,%2.2
+	level #2-1/.style={level size = 1.7cm},
+	%level 0/.style={level size = 1.7cm},
+	node size=\page@piece@part\columnwidth,%2.2
+	id prefix = #4,
 	date format=yyyy,
 	list separators={\par}{ }{}{},
-]{input{data.#1.kwartierstaat.#2}}
-\end{tikzpicture}
+    name font=\gtrifmale{\selectfont\color{blue!50!black}}{\selectfont\color{red!50!black}},
+    name code  ={\hyperlink{\gtr@gkv@idlink}{\gtrPrintName@full (\gtrDBkekule)}},
+]{input{data.#1.kwartierstaat.#2.#3}}
+\if@grps@adobe@out@%
+\ifdefined\gtr@gkv@childtree\node[draw,blue] (c) at (#4#4.south) {\showocg{\gtr@gkv@childtree}{$\downarrow$}};\fi%
+\ifdefined\gtr@gkv@lefttree\node [draw,blue] (a) at (#4#4.west) {\showocg{\gtr@gkv@lefttree}{$\leftarrow$}};\fi%
+\ifdefined\gtr@gkv@righttree\node[draw,blue] (b) at (#4#4.east) {\showocg{\gtr@gkv@righttree}{$\rightarrow$}};\fi%
+\else%
+\ifdefined\gtr@gkv@childtree\node[draw,blue] (c) at (#4#4.south) {\hyperlink{GRAPH\expandonce\gtr@gkv@childtree}{$\downarrow$}};\fi%
+\ifdefined\gtr@gkv@lefttree\node [draw,blue] (a) at (#4#4.west) {\hyperlink{GRAPH\expandonce\gtr@gkv@lefttree}{$\leftarrow$}};\fi%
+\ifdefined\gtr@gkv@righttree\node[draw,blue] (b) at (#4#4.east) {\hyperlink{GRAPH\expandonce\gtr@gkv@righttree}{$\rightarrow$}};\fi%
+\fi%
+ %\node[draw,blue] (c) at (#4#4.south west) {Hallo};
+\end{scope}
 }
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,39 +151,91 @@
 \newcommand{\Kwartierstaat}[2][]{%
 	\loadgramps%
 	\typeout{Kwartierstaat van #2}%
-	\setkeys{grpskeys}{gen=2,depth=1,short,col=2,#1}
+	\setkeys{grpskeys}{gen=2,
+			col=2,
+			genpiece=200,
+			fullname,
+			depth=2,
+			relations=3,
+			long,
+			media=0,
+			tree=false,
+			lifeevents=3,
+			parents=2,
+			#1}
+	\typeout{Start kwartier = \generations, \generationpiece}
+ %
 	\directlua{grps.set('\luaescapestring{#2}',\luaescapestring{\generations})}%
 	\setcounter{Generation}{1}%
 	\setcounter{NewGeneration}{1}%
-	\setcounter{grpsNumber}{1}%
-% Start the loop
-    \@listmodefalse%
-    \@columnmodefalse%
-    \startmulticolumn%
-    \edef\rest{10}% groter als 0
-	\whiledo{ \( \numexpr\value{Generation} - 1 < \generations \) \and \( \rest > 0 \) }{%
-		\ifthenelse{\value{NewGeneration} = \value{grpsNumber}}{%
-			\stoplist
-			\multiply\c@NewGeneration by 2%
-			\typeout{Generation \arabic{Generation}  number: \arabic{grpsNumber} -- \arabic{NewGeneration}}%
-			\subsection*{\grpsTvoorouder{\arabic{Generation}}}
-			\addcontentsline{toc}{subsection}{\grpsTvoorouder{\arabic{Generation}}}
-			\startlist
-		 }{}%
-		 \directlua{%
-		 h,rest = grps.get(\arabic{grpsNumber})
-		 tex.print("\\edef\\handle{"..h.."}")
-		 tex.print("\\edef\\rest{"..rest.."}")
-		 }%
-		 %\edef\handle{\directlua{tex.print(grps.get(\arabic{grpsNumber}))}}%
-		 \typeout{handle=\handle, rest=\rest}%
-		 \ifx\handle\empty{}\else%
-		\item[\arabic{grpsNumber}]
-		\grpsFirstPerson{\handle}%
-		\fi%
-		\stepcounter{grpsNumber}%
-		\ifthenelse{\value{NewGeneration} = \value{grpsNumber}}{\stepcounter{Generation}}{}%
-	}%
-	\stoplist%
-	\stopmulticolumn%
+ %	\setcounter{grpsNumber}{1}%
+	\def\grps@kekule{1}%
+	\ifthenelse{\generations > \generationpiece}%
+		{\@grps@option@parttree@true}%
+		{\edef\generationpiece{\generations}\@grps@option@parttree@false}%
+ % Start the loop
+    \@grps@mode@list@false\@columnmodefalse
+	\startmulticolumn
+ %
+	\directlua{
+    base_id = "\luaescapestring{#2}"
+    new_generation = 2
+    generation = 2
+    local max_gen = \luaescapestring{\generations}
+    gen_piece = \luaescapestring{\generationpiece}
+
+    local tree_starts = grps.set_ancestor_tree(base_id,max_gen,gen_piece)
+	local deel_kwartieren = grps.set_kwartier_pieces(tree_starts,gen_piece)
+%
+	\if@grps@option@tree@ grps_prepare_trees(base_id,tree_starts,gen_piece) \fi
+
+	\if@grps@option@parttree@%
+	token.set_macro("page@piece@part",grps.format(".3f", (1/(2^(gen_piece-1)))-0.04 ),"global")
+	\else
+	token.set_macro("page@piece@part",grps.format(".3f", (1/(2^(max_gen-1)))-0.04 ),"global")
+	\fi
+
+	for i, h in ipairs(tree_starts) do
+		%tex.print("\\typeout{stuk "..i.."}")
+		for j,k in pairs(deel_kwartieren[i]) do
+			local handle=grps.kekule_id(k)
+			%tex.print("\\typeout{stuk "..i.." - "..k.." "..handle.."}")
+			if j==1 then
+				\if@grps@option@tree@ %
+				tex.print("\\stoplist\\stopmulticolumn")
+				tex.print("\\begin{figure}[htb]\\begin{center}")
+				tex.print("\\hypertarget{GRAPHTREE"..handle.."}{\\grpsTkwartierstaatvan{\\fullname{"..handle.."}}}("..k..")\\\\")
+				tex.print("\\begin{tikzpicture}")
+				tex.print("\\node[] (TREEBASE"..base_id..") at (0,0) {};")
+				tex.print("\\AncestorTreePart{"..base_id.."}{\\generationpiece}{"..i.."}{"..handle.."}")
+				tex.print("\\end{tikzpicture}")
+				tex.print("\\end{center}\\end{figure}")
+				\fi
+				tex.print("\\startmulticolumn")
+				tex.print("\\startlist")
+				tex.print("\\item["..k.."]")
+				tex.print("\\hyperlink{"..handle.."}{\\fullname{"..handle.."}}")
+				\if@grps@option@parttree@%
+					tex.print("\\addcontentsline{toc}{subsection}{\\grpsTkwartierstaatvan{\\fullname{"..handle.."}}("..k..")}")
+				\fi%
+			else
+				\if@grps@option@parttree@%
+				\else%
+				if k >= new_generation then
+					tex.print("\\stoplist")
+					tex.print("\\subsection*{\\grpsTvoorouder{"..generation.."}}")
+					tex.print("\\addcontentsline{toc}{subsection}{\\grpsTvoorouder{"..generation.."}}")
+					new_generation = new_generation*2
+					generation  = generation+1
+				end
+				\fi%
+				tex.print("\\startlist")
+				tex.print("\\item["..k.."]")
+				print("Preparing person "..k)
+				tex.print("\\grpsPrintPerson[]{"..handle.."}")%
+			end
+		end
+	end
+	tex.print("\\stoplist\\stopmulticolumn")
 	}
+}

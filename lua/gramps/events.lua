@@ -4,7 +4,7 @@ local date=require("gramps.date")
 local Event = {_TYPE='module', _NAME='gramps.place' ,_VERSION='0.9.10.2024'}
 
 local function translate(s)
-	return(s) 
+return(s)
 end
 
 local _=translate
@@ -96,7 +96,7 @@ Event.TYPE = {
     RESIDENCE = 42,
     RETIREMENT = 43,
     WILL = 44}
-    
+
 Event.MAP = {
         [Event.TYPE.UNKNOWN] = { _("Unknown"), "Unknown"},
         [Event.TYPE.CUSTOM] = {_("Custom"), "Custom"},
@@ -144,51 +144,52 @@ Event.MAP = {
         [Event.TYPE.DIV_FILING] = {_("Divorce Filing"), "Divorce Filing"},
         [Event.TYPE.ANNULMENT] = {_("Annulment"), "Annulment"},
         [Event.TYPE.MARR_ALT] = {_("Alternate Marriage"), "Alternate Marriage"},
-       
-        }
-        
-Event.LifeEvents={Event.TYPE.BIRTH, Event.TYPE.BAPTISM, Event.TYPE.DEATH,
-			Event.TYPE.BURIAL, Event.TYPE.CREMATION, Event.TYPE.ADOPT}
---[[             
-             [__('Family'),
-              [ENGAGEMENT, MARRIAGE, DIVORCE, ANNULMENT, MARR_SETTL, MARR_LIC,
-               MARR_CONTR, MARR_BANNS, DIV_FILING, MARR_ALT] ],
-             [T_('Religious'),
-              [CHRISTEN, ADULT_CHRISTEN, CONFIRMATION, FIRST_COMMUN, BLESS,
-               BAR_MITZVAH, BAS_MITZVAH, RELIGION] ],
-             [T_('Vocational'),
-              [OCCUPATION, RETIREMENT, ELECTED, MILITARY_SERV, ORDINATION] ],
-             [T_('Academic'),
-              [EDUCATION, DEGREE, GRADUATION] ],
-             [_T_('Travel'),
-              [EMIGRATION, IMMIGRATION, NATURALIZATION] ],
-             [_T_('Legal'),
-              [PROBATE, WILL] ],]]--
-Event.Residence={Event.TYPE.RESIDENCE, Event.TYPE.CENSUS, Event.TYPE.PROPERTY}
---[[             [_T_('Other'),
-              [CAUSE_DEATH, MED_INFO, NOB_TITLE, NUM_MARRIAGES] ] ]
-]]--
 
+        }
+
+Event.LifeEvents={Event.TYPE.BIRTH, Event.TYPE.BAPTISM, Event.TYPE.DEATH,
+Event.TYPE.BURIAL, Event.TYPE.CREMATION, Event.TYPE.ADOPT}
+
+Event.Family =
+              {Event.TYPE.ENGAGEMENT, Event.TYPE.MARRIAGE, Event.TYPE.DIVORCE,
+              Event.TYPE.ANNULMENT, Event.TYPE.MARR_SETTL, Event.TYPE.MARR_LIC,
+               Event.TYPE.MARR_CONTR, Event.TYPE.MARR_BANNS, Event.TYPE.DIV_FILING,
+               Event.TYPE.MARR_ALT}
+Event.Religious =
+              {Event.TYPE.CHRISTEN, Event.TYPE.ADULT_CHRISTEN, Event.TYPE.CONFIRMATION,
+              Event.TYPE.FIRST_COMMUN, Event.TYPE.BLESS, Event.TYPE.BAR_MITZVAH,
+              Event.TYPE.BAS_MITZVAH, Event.TYPE.RELIGION}
+Event.Vocational={
+              Event.TYPE.OCCUPATION, Event.TYPE.RETIREMENT, Event.TYPE.ELECTED,
+              Event.TYPE.MILITARY_SERV, Event.TYPE.ORDINATION}
+Event.Academic = {
+              Event.TYPE.EDUCATION, Event.TYPE.DEGREE, Event.TYPE.GRADUATION}
+Event.Travel = {
+              Event.TYPE.EMIGRATION, Event.TYPE.IMMIGRATION, Event.TYPE.NATURALIZATION}
+Event.Legal = { Event.TYPE.PROBATE, Event.TYPE.WILL}
+Event.Residence = {Event.TYPE.RESIDENCE, Event.TYPE.CENSUS, Event.TYPE.PROPERTY}
+--[[             [_T_('Other'),
+              [CAUSE_DEATH, MED_INFO, NOB_TITLE, NUM_MARRIAGES]
+]]--
 
 local Event_meta = {}
 local events = {}
 local order = {}
 local obj_events = {}
 
-
 function Event:new(handle)
 --print("new",handle,events[handle])
     if events[handle] then
-		return events[handle]
-	else
-		r = query.get_event_from_handle(handle)
-		if r[1] then
-			events[handle]=r[1]
-			return r[1]
-		else
-			return(nil)
-		end
-	end
+return events[handle]
+else
+r = query.get_event_from_handle(handle)
+if r[1] then
+events[handle]=r[1]
+return r[1]
+else
+return(nil)
+end
+end
 end
 
 function Event.events(handle)
@@ -207,11 +208,10 @@ function Event.events(handle)
     if handle then   return obj_events[handle] end
 end
 
-
 function Event.get_event_by_type(evs,t)
 --print("get_event_by_type",util.dump(evs),t)
-	res={}
-	if evs then
+res={}
+if evs then
         for i,ev in ipairs(evs) do
             if events[ev] and events[ev].blob_data[3][1]==t then
                 table.insert(res,ev)
@@ -219,10 +219,8 @@ function Event.get_event_by_type(evs,t)
             end
         end
     end
-	return res
+return res
 end
-
-
 
 -------------------------------------
 -- Set the metatable to the module
@@ -233,13 +231,13 @@ setmetatable(Event, {
         return Event:new(handle)
     end,
 
-	__index = function(_,handle)
-		return Event(handle)
-	end,
+__index = function(_,handle)
+return Event(handle)
+end,
 
-	__newindex = function(_,handle,e)
-		events[handle]=e
-	end,
+__newindex = function(_,handle,e)
+events[handle]=e
+end,
 })
 ----------------------------------------
 

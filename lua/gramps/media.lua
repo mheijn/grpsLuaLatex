@@ -12,39 +12,38 @@ local order = {}
 local id_handle = {}
 
 local function check_handle(req)
-	if type(req)=="string" then
-		if #req >6 then
-			handle=req
-		else
-			handle  = id_handle[req] or query.get_media_handle_from_id(req)
-		end
-	end
-	return handle
+if type(req)=="string" then
+if #req >6 then
+handle=req
+else
+handle  = id_handle[req] or query.get_media_handle_from_id(req)
 end
-
+end
+return handle
+end
 
 function Media:new(req)
     local handle = check_handle(req)
     if media[handle] then
-		return media[handle]
-	else
-		r = query.get_media_from_handle(handle,false)
-		if r[1] then
-			media[handle]=r[1]
-			id_handle[r[1].gramps_id]=handle
-			return r[1]
-		else
-			return(nil)
-		end
-	end
+return media[handle]
+else
+r = query.get_media_from_handle(handle,true)
+if r[1] then
+media[handle]=r[1]
+id_handle[r[1].gramps_id]=handle
+return r[1]
+else
+return(nil)
+end
+end
 end
 
 function Media.all()
-	local r = query.get_media_from_handle(nil,false)
-	for i,m in ipairs(r) do
-		order[i]={m.handle,m.path}
-		media[m.handle] = m
-	end
+local r = query.get_media_from_handle(nil,true)
+for i,m in ipairs(r) do
+order[i]={m.handle,m.path}
+media[m.handle] = m
+end
     table.sort(order, function(a, b) return a[2] < b[2] end )
 end
 
@@ -80,7 +79,7 @@ function sort_person_handles(objs)
 end
 
 function Media.persons(handle)
-	if Media[handle].persons == nil then
+if Media[handle].persons == nil then
         local pers = {}
         local phs = query.get_person_from_media(handle)
         for i,ph in ipairs(phs) do
@@ -91,8 +90,8 @@ function Media.persons(handle)
 
         Media[handle].persons = pers
         --person(pers)
-	end
-	return sort_person_handles(Media[handle].persons)
+end
+return sort_person_handles(Media[handle].persons)
 end
 
 function Media.path(handle)
@@ -101,27 +100,26 @@ function Media.path(handle)
     return mediapath.."/"..m.path
 end
 
-
 -----------------------------------------------------
 
 ----------------NAME----------------------
 function Media.fulname(handle)
-	local m=Media(handle)
-	local s=m.title
+local m=Media(handle)
+local s=m.title
     return s
 end
 
 function Media.name(handle)
-	local m=Media(handle)
-	if m==nil then return "" end
-	return m.desc
+local m=Media(handle)
+if m==nil then return "" end
+return m.desc
 end
 
 -------------------------------------
 -- Set the metatable to the module
 -------------------------------------
 local function media_iterator(order, i)
-	i = i + 1
+i = i + 1
     if i <= #order then
         return i, media[order[i][1]]
     end
@@ -132,39 +130,39 @@ setmetatable(Media, {
         return Media:new(handle)
     end,
 
-	__index = function(_,handle)
-		return Media:new(handle)
-	end,
+__index = function(_,handle)
+return Media:new(handle)
+end,
 
-	__newindex = function(_,handle,p)
-		media[handle]=p
-	end,
+__newindex = function(_,handle,p)
+media[handle]=p
+end,
 
-	__pairs = function(_)
+__pairs = function(_)
         return media_iterator, order, 0  -- Return the custom iterator function, table, and initial index
-	end
+end
 })
 
-
-
 if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then
-    --id = "O0710"
-    --local m = Media[id]
+query.init("/home/marc/Nextcloud/gramps/grampsdb/63a99d81/sqlite.db")
+
+    local id = "O0710"
+    local m = Media[id]
     --print(m.handle)
+
     --local ps = Media.persons( m.handle )
-    --print(util.dump(m))
+    print(util.dump(m))
     --print(m.handle,#ps,util.dump(ps))
-    Media.all()
+    --Media.all()
     --for i,o in ipairs(order) do
     --    print(i,Media[o[1]].path)
     --end
-    for i,m in pairs(Media) do
-     print (i,m.path)
-     end
+    --for i,m in pairs(Media) do
+     --print (i,m.path)
+     --end
 else
     return Media
 end
-
 
 --[[
 ..[11] = {

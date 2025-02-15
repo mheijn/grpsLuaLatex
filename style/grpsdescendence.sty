@@ -15,7 +15,7 @@
     \setcounter{Generation}{1}%
     \setcounter{NewGeneration}{1}%
     \setcounter{grpsNumber}{1}%
-    \@listmodefalse%
+    \@grps@mode@list@false%
     \@columnmodefalse%
 %   Start the loop
     \startmulticolumn%
@@ -59,7 +59,7 @@
     \setcounter{Generation}{1}%
     \setcounter{NewGeneration}{1}%
     \setcounter{grpsNumber}{1}%
-    \@listmodefalse%
+    \@grps@mode@list@false%
     \@columnmodefalse%
     %
     \startmulticolumn
@@ -181,7 +181,7 @@
 %    end
     io.write("\string\n In "..command.." using "..filename)
 }
-\if@parttree
+\if@grps@option@parttree@
 \typeout{parttree true}
 \tikzset{%
     /gtr/haschildren/.style={name code  ={\hypertarget{CHILD\gtr@gkv@id}{}\hyperlink{STAM\gtr@gkv@id}{\gtrPrintName@full $\rightarrow$}}},

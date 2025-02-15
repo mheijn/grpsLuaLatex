@@ -21,7 +21,7 @@
  \def\grpsTtrouwde{married }
  \def\grpsTscheidde{divorced }
  \def\grpsTverloofde{engaged }
- \def\grpsTkoppelde{connected }
+ \def\grpsTkoppelde{had a relation }
  \def\grpsTgeboren{is born }
  \def\grpsToverleed{died }
  \def\grpsTbegraven{is buried}
@@ -41,6 +41,7 @@
  \def\grpsTkwartierstaatvan#1{Ancestors of #1}%
  \def\grpsTdescendenceof#1{Descendence of #1}%
  \def\grpsTvoorouder#1{Generation #1}%
+ \newcommand{\makehijzij}[1]{\ifcase#1{zij }\or{hij }\else oo\fi}%
 %%
 %% \paragraph{Dutch}
 %%
@@ -63,7 +64,7 @@
  \def\grpsTtussen{tussen }
  \def\grpsTtrouwde{trouwde }
  \def\grpsTscheidde{scheidde }
- \def\grpsTkoppelde{koppelde }
+ \def\grpsTkoppelde{had een relatie }
  \def\grpsTverloofde{verloofde }
  \def\grpsTgeboren{is geboren }
  \def\grpsToverleed{is overleed }

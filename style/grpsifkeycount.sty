@@ -1,27 +1,47 @@
 %% \subsection{Ifs}
 %
-\newif\if@shortperson
-\@shortpersonfalse
+\newif\if@grps@option@shortperson@\@grps@option@shortperson@false%
+\newif\if@grps@option@tree@\@grps@option@tree@false%
+\newif\if@grps@option@parttree@\@grps@option@parttree@false%
+\newif\if@grps@adobe@out@\@grps@adobe@out@false
+\newif\if@grps@default@\@grps@default@false
+\newif\if@grps@fullname@\@grps@fullname@true
+\newif\if@grps@option@siblings@\@grps@option@siblings@false
 
-\newif\if@parttree%
-\@parttreefalse%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  \paragraph{Column and list handling}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newif\if@listmode \@listmodefalse%
+\newif\if@grps@mode@list@ \@grps@mode@list@false%
 \newif\if@columnmode \@columnmodefalse%
+
 \newcommand{\startmulticolumn}{%
     \if@columnmode\relax\else\begin{multicols}{\grpscolumns}\@columnmodetrue\fi%
 }%
-\newcommand{\startlist}{%
-    \if@listmode\relax\else\begin{grampslisti}\@listmodetrue\fi%
-}%
-\newcommand{\stoplist}{%
-    \if@listmode\end{grampslisti}\@listmodefalse\fi%
-}%
 \newcommand{\stopmulticolumn}{%
     \if@columnmode\end{multicols}\@columnmodefalse\fi%
+}%
+\newcommand{\startlist}{\if@grps@mode@list@\relax\else\begin{grampslisti}\@grps@mode@list@true\fi}%
+\newcommand{\stoplist}{\if@grps@mode@list@\end{grampslisti}\@grps@mode@list@false\fi}%
+%%%%%%%%%%%%%%%%%%%%
+%
+\newcounter{grps@itemize@depth}%
+\setcounter{grps@itemize@depth}{0}%
+\def\grpsItemizeActualdepth{1}
+\newcommand{\startitemize}{%
+    \ifthenelse{\numexpr\value{grps@itemize@depth} <\grpsItemizeActualdepth}%
+    {\stepcounter{grps@itemize@depth}\begin{compactitemize}}{}%
+}%
+\newcommand{\stopitemize}[1]{%
+    \def\grpsItemizeActualdepth{#1}%
+    \whiledo{\numexpr\value{grps@itemize@depth} =\grpsItemizeActualdepth}%
+        {\end{compactitemize}\addtocounter{grps@itemize@depth}{-1}}%
+    \edef\grpsItemizeActualdepth{\arabic{grps@itemize@depth}}%
+}%
+\newcommand{\doitem}[2][$\cdot$]{%
+    \ifthenelse{\grps@option@itemize > 0}{
+    \ifthenelse{\grps@option@itemize < \grpsItemizeActualdepth}{#2}%
+    {\startitemize\item[#1]}}{}%
 }%
 %
 %% \subsection{Counters}
@@ -31,29 +51,81 @@
 \newcounter{NewGeneration}
 \newcounter{result}
 
-%
 %% \subsection{Keys (grpskeys)}
  \def\stringtrue{true}
 
-%% \paragraph{long}
- \define@key{grpskeys}{long}[true]{\@shortpersonfalse\loadgramps%
-    \directlua{grps.shortformat = false}}%
-%% \paragraph{short}
- \define@key{grpskeys}{short}[true]{\@shortpersontrue\loadgramps%
-    \directlua{grps.shortformat = true}}%
-%% \paragraph{gen}
- \define@key{grpskeys}{gen}{\def\generations{#1}\loadgramps%
-    \directlua{grps.generations = #1}}%
-%% \paragraph{depth}
- \define@key{grpskeys}{depth}{\loadgramps%
+%% \paragraph{gen} amount of generations or ``all''
+ \def\grps@gen@all{all}
+ \define@key{grpskeys}{gen}{\def\grps@key@temp{#1}\ifx\grps@gen@all\grps@key@temp%
+    \def\generations{1000}\loadgramps\directlua{grps.generations = 1000}%
+    \else%
+    \def\generations{#1}\loadgramps\directlua{grps.generations = #1}%
+    \fi}%
+%% \paragraph{depth} generation depth by (grand)children
+ \xdef\grps@option@depth{1}
+ \define@key{grpskeys}{depth}{\xdef\grps@option@depth{#1}%
     \loadgramps\directlua{grps.gendepth = #1}}
-%% \paragraph{genpiece}
+%% \paragraph{genpiece} cut into pieces of $n$ generations
  \define@key{grpskeys}{genpiece}[4]{\def\generationpiece{#1}}%
-%% \paragraph{col}
+%% \paragraph{col} column settings
  \define@key{grpskeys}{col}[2]{\def\grpscolumns{#1}}%
-% \paragraph{parttree}
+%
+%% \paragraph{show siblings }
+ \define@key{grpskeys}{siblings}[true]{\def\partialbool{#1}%
+    \ifx\partialbool\stringtrue\@grps@option@siblings@true\else\@grps@option@siblings@false\fi}%
+%
+%% \paragraph{show tree }
+ \define@key{grpskeys}{tree}[true]{\def\partialbool{#1}%
+    \ifx\partialbool\stringtrue\@grps@option@tree@true\else\@grps@option@tree@false\fi}%
+%% \paragraph{parttree}
  \define@key{grpskeys}{parttree}[true]{%
     \def\partialbool{#1}%
-    \ifx\partialbool\stringtrue\@parttreetrue\else\@parttreefalse\fi%
+    \ifx\partialbool\stringtrue\@grps@option@parttree@true\else\@grps@option@parttree@false\fi%
     }%
+%% \paragraph{abobe output}
+ \define@key{grpskeys}{adobe}[true]{%
+    \def\partialbool{#1}%
+    \ifx\partialbool\stringtrue\@grps@adobe@out@true\else\@grps@adobe@out@false\fi%
+    }%
+ \define@key{grpskeys}{noadobe}[true]{\@grps@adobe@out@false}%
+%
+%% \paragraph{option long} sets show long (0=never,1=central person, 4=all)
+ \xdef\grps@option@long{4}
+ \define@key{grpskeys}{long}[4]{\xdef\grps@option@long{#1}\@grps@option@shortperson@false}%
+ \define@key{grpskeys}{short}[true]{\xdef\grps@option@long{0}\@grps@option@shortperson@true}%
+%
+%% \paragraph{option media} sets show media (0=never,1=central person, 4=all)
+ \xdef\grps@option@media{1}
+ \define@key{grpskeys}{media}[1]{\xdef\grps@option@media{#1}}%
+ \xdef\grps@option@maxmedia{1}
+ \define@key{grpskeys}{maxmedia}[1]{\xdef\grps@option@maxmedia{#1}}%
+%
+%% \paragraph{option vocation} sets show vocation (0=never,1=central person, 4=all)
+ \xdef\grps@option@vocation{0}
+ \define@key{grpskeys}{vocation}[1]{\xdef\grps@option@vocation{#1}}%
+%% \paragraph{option residence} sets show residence (0=never,1=central person, 4=all)
+ \xdef\grps@option@residence{0}
+ \define@key{grpskeys}{residence}[1]{\xdef\grps@option@residence{#1}}%
+%
+%% \paragraph{option default} start with default options
+ \define@key{grpskeys}{default}[true]{\def\partialbool{#1}%
+    \ifx\partialbool\stringtrue\@grps@default@true\else\@grps@default@false\fi}%
+%% \paragraph{option fullname} sets show fullname
+ \define@key{grpskeys}{fullname}[true]{\def\partialbool{#1}%
+    \ifx\partialbool\stringtrue\@grps@fullname@true\else\@grps@fullname@false\fi}%
+%% \paragraph{option parents} sets show parents (0=never,1=central person, 4=all)
+ \xdef\grps@option@parents{0}
+ \define@key{grpskeys}{parents}[1]{\xdef\grps@option@parents{#1}}%
+%% \paragraph{option relations} sets show relations (0=never,1=central person, 4=all)
+ \xdef\grps@option@relations{0}
+ \define@key{grpskeys}{relations}[1]{\xdef\grps@option@relations{#1}}%
+%% \paragraph{option lifeevents} sets show lifeevents (0=never,1=central person, 4=all)
+ \xdef\grps@option@lifeevents{3}
+ \define@key{grpskeys}{lifeevents}[1]{\xdef\grps@option@lifeevents{#1}}%
+%% \paragraph{option children} sets show children (0=never,1=central person, 4=all)
+ \xdef\grps@option@children{1}
+ \define@key{grpskeys}{children}[1]{\xdef\grps@option@children{#1}}%
+%% \paragraph{option itemize} itemize information
+ \xdef\grps@option@itemize{0}
+ \define@key{grpskeys}{itemize}[1]{\xdef\grps@option@itemize{#1}}%
 
