@@ -6,7 +6,7 @@ This package is still in development. Use it at you own risk and suggestions are
 ## install
 * run: 
  * latex grpslua.ins
- * install.sh
+ * install.sh (sql, install, all, clear)
 ## dependning
 ### Lua
 * luasql-sqlite3
