@@ -19,7 +19,7 @@
 \RequirePackage{xstring}
 \RequirePackage{enumitem}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Indexing. We do not want this together with LTXDOC.
+% Indexing. We do not want package \emph{imakeidx} together with LTXDOC.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \ifcsname DocInclude\endcsname\relax\else
 \usepackage{imakeidx}
@@ -68,31 +68,23 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  \subsection{Images}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newenvironment{Figure}{\nopagebreak[4]}{\par}%
- %\newenvironment{Figure}{\begin{figure}[htb]}{\end{figure}}%
  \tikzset{%
 	tagbox/.style = {red,thick,solid},%
 	tagtext/.style = {black,thick,solid,rounded corners,fill=white},%
 	tagnumber/.style={yellow, font=\bf, fill=blue}
 }%
 %%
-%% \marg{medium\_handle}
+%% \marg{medium\_handle} Make tikzpicture with \emph{gramps\_id} or \emph{handle}.
 %%
-\def\grpsMedium#1{%
-\directlua{%
-	%grps.test()
-	grps.picture('\luaescapestring{#1}')
-}}%
+\def\grpsMedium#1{\directlua{grps.picture('\luaescapestring{#1}')}}%
 %%
 %% Print all images
 %%
-\def\grpsAllMedia{%
-\directlua{%
-	grps.allmedia( )
-}}%
+\def\grpsAllMedia{\directlua{grps.allmedia( )}}%
+%
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  \subsection{first Caps}
+%%  \subsection{first Caps}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\firstcap}[1]{\directlua{word_first_cap(\luastring{#1})}}
@@ -118,16 +110,16 @@ function point_end_line(s)
    tex.sprint(s)
 end
 \end{luacode}
-
-
+%
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  \subsection{People and Gramps}
+%%  \subsection{People and Gramps}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
  \newcommand\loadgramps{%
 	\directlua{if not grps then grps = require("gramps") end }}%
 %
-%% \marg{database name}
+%% \marg{database name} Ful directory of gramps sql-database.
 \newcommand{\grampsdatabase}[1]{%
     \loadgramps%
     \directlua{grps.setdatabase('\luaescapestring{#1}')}
@@ -139,42 +131,37 @@ end
   \loadgramps
 	\directlua{tex.print(grps.fullname('\luaescapestring{#1}'))}%
 	}%
-
-%% \marg{person\_handle or person\_id}
-\def\grpsPersdon#1{%
-\directlua{%
-	grps.person('\luaescapestring{#1}')
-}}%
-%%%%%%%
+%
+% Print all people in a list.
 \def\grpsAllPeople{%
 \noindent
-\directlua{%
-%	local i=1
+\directlua{
+ %	local i=1
 	for h,p in pairs(grps.allperson())do
-%		i=i+1
-%        if i>20 then break end
+ %		i=i+1
+ %        if i>20 then break end
 
         tex.print("\\makebox[0.1\\textwidth][l]{"..p.gramps_id .."}")
-%        tex.print("\\makebox[0.4\\textwidth][l]{"..h['handle'] .."}")
+ %      tex.print("\\makebox[0.4\\textwidth][l]{"..h['handle'] .."}")
         tex.print("\\makebox[0.28\\textwidth][l]{"..p.given_name .."}")
         tex.print("\\makebox[0.21\\textwidth][l]{"..p.surname .."}")
 
         if p.birth and p.birth[3] then
-			tex.print("\\makebox[0.1\\textwidth][l]{"..p.birth[3].."}")
-		elseif p.baptism and p.baptism[3] then
-			tex.print("\\makebox[0.1\\textwidth][l]{"..p.baptism[3].."}")
-		else
-			tex.print("\\makebox[0.1\\textwidth][l]{--}")
-		end
+            tex.print("\\makebox[0.1\\textwidth][l]{"..p.birth[3].."}")
+        elseif p.baptism and p.baptism[3] then
+            tex.print("\\makebox[0.1\\textwidth][l]{"..p.baptism[3].."}")
+        else
+            tex.print("\\makebox[0.1\\textwidth][l]{--}")
+        end
 
-		if p.death and p.death[3] then
-			tex.print("\\makebox[0.1\\textwidth][l]{"..p.death[3].."}")
-		elseif p.burial and p.burial[3] then
-			tex.print("\\makebox[0.1\\textwidth][l]{"..p.burial[3].."}")
-		else
-			tex.print("\\makebox[0.1\\textwidth][l]{--}")
-		end
-        tex.print("\\\\")
+        if p.death and p.death[3] then
+            tex.print("\\makebox[0.1\\textwidth][l]{"..p.death[3].."}")
+        elseif p.burial and p.burial[3] then
+            tex.print("\\makebox[0.1\\textwidth][l]{"..p.burial[3].."}")
+        else
+            tex.print("\\makebox[0.1\\textwidth][l]{--}")
+        end
+      tex.print("\\\\")
     end
 }}%
 %
