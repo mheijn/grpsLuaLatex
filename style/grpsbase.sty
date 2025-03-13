@@ -68,6 +68,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  \subsection{Images}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newenvironment{Figure}{\nopagebreak[4]}{\par}%
  \tikzset{%
 	tagbox/.style = {red,thick,solid},%
 	tagtext/.style = {black,thick,solid,rounded corners,fill=white},%
@@ -116,18 +117,32 @@ end
 %%  \subsection{People and Gramps}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
- \newcommand\loadgramps{%
+ \newcommand{\loadgramps}{%
 	\directlua{if not grps then grps = require("gramps") end }}%
 %
 %% \marg{database name} Ful directory of gramps sql-database.
+%% Sets \cmd{author} to author of databsae
 \newcommand{\grampsdatabase}[1]{%
     \loadgramps%
-    \directlua{grps.setdatabase('\luaescapestring{#1}')}
+    \directlua{
+    grps.setdatabase('\luaescapestring{#1}')
+    local res = grps.researcher()
+    local address = res['street']
+    if string.len(address) and string.len(res['postal']) then address = address..", "..res['postal'] end
+    if string.len(address) and string.len(res['city']) then address = address.." "..res['city'] end
+    if string.len(address) and string.len(res['state']) then address = address.." "..res['state'] end
+    if string.len(address) and string.len(res['email']) then address = address..", \\tt{e-mail:}"..res['email'] end
+    if string.len(address) and string.len(res['phone']) then address = address.." ("..res['phone']..")" end
+    
+    tex.print("\\author{"..res['name'].."\\thanks{"..address.."}}")
+    tex.print("\\typeout{"..res['name'].."\\thanks{"..address.."}}")
+    }
 }%
+%%
 %%
 %% \marg{person\_handle or person\_id}
 %% \cmd{\fullname}\{I0018\} = \fullname{I0018}
-\newcommand\fullname[1]{%
+\newcommand{\fullname}[1]{%
   \loadgramps
 	\directlua{tex.print(grps.fullname('\luaescapestring{#1}'))}%
 	}%
@@ -194,7 +209,9 @@ end
 %% &                &    SPOUSEPARENTS=8\\
 %% &                &    MEDIA=9 \\
 %% &                &    ITEMIZE=10 \\
-%% &                &    SIBLINGS=11
+%% &                &    SIBLINGS=11 \\
+%% &                &    NOTES=12 \\
+%% &                &    CITE=13
 %% \end{tabular}
 
 \begin{luacode}
@@ -248,17 +265,21 @@ end
     options_yes(options,grps.OPTION.RESIDENCE,\grps@option@residence)
     options_yes(options,grps.OPTION.MEDIA,\grps@option@media)
     options_yes(options,grps.OPTION.CHILDREN,\grps@option@children)
+    options_yes(options,grps.OPTION.NOTES,\grps@option@notes)
+    options_yes(options,grps.OPTION.CITE,\grps@option@cite)
     options_yes(options,grps.OPTION.ITEMIZE,\grps@option@itemize)
     options[grps.OPTION.O_MAXMEDIA]=\grps@option@maxmedia
 %
-    \if@grps@option@siblings@
+     \if@grps@option@siblings@
       options[OPTION.O_CENTRAL]=grps.set_options(options[OPTION.O_CENTRAL],OPTION.SIBLINGS)%
     \else
       options[OPTION.O_CENTRAL]=grps.remove_options(options[OPTION.O_CENTRAL],OPTION.SIBLINGS)
     \fi
 %
     grps.print_person('\luaescapestring{#2}',\grps@option@depth,1,options,1)
-}}
+}
+\if@grps@option@siblings@\typeout{siblings}\else\typeout{no sib}\fi
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% \subsection{Lists}
  %%

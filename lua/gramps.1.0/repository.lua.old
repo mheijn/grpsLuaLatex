@@ -1,0 +1,264 @@
+local query =require("gramps.queries")
+local util  =require("gramps.util")
+local _     =require("gramps.language")
+local locality =require("gramps.address")
+
+local Repo = {_TYPE='module', _NAME='gramps.repository' ,_VERSION='0.15.10.2024'}
+
+local repositories = {}
+local order = {}
+local id_handle = {}
+
+local Blob = {
+    handle=1,   -- {"type": "string", "maxLength": 50, "title": _("Handle")},
+    gramps_id=2, --{"type": "string", "title": _("Gramps ID")},
+    type=3,     --RepositoryType.get_schema(),
+    name=4,     --{"type": "string","title": _("Name")},
+    note_list=5, --{"type": "array","items": {"type": "string","maxLength": 50},"title": _("Notes")},
+    address_list=6, --{"type": "array","items": Address.get_schema(),"title": _("Addresses")},
+    urls=7,         -- {"type": "array", "items": Url.get_schema(), "title": _("URLs")},
+    change=8,       --{"type": "integer","title": _("Last changed")},
+    tag_list=9,     --{"type": "array","items": {"type": "string","maxLength": 50},"title": _("Tags")},
+    private=10       -- {"type": "boolean","title": _("Private")}
+    }
+
+local Type ={
+    UNKNOWN = -1,
+    CUSTOM = 0,
+    LIBRARY = 1,
+    CEMETERY = 2,
+    CHURCH = 3,
+    ARCHIVE = 4,
+    ALBUM = 5,
+    WEBSITE = 6,
+    BOOKSTORE = 7,
+    COLLECTION = 8,
+    SAFE = 9 }
+Type._CUSTOM = Type.CUSTOM
+Type._DEFAULT = Type.LIBRARY
+
+local Types = {
+    [Type.UNKNOWN]= { _("Unknown"), "Unknown"},
+    [Type.CUSTOM]= { _("Custom"), "Custom"},
+    [Type.LIBRARY]= { _("Library"), "Library"},
+    [Type.CEMETERY]= { _("Cemetery"), "Cemetery"},
+    [Type.CHURCH]= { _("Church"), "Church"},
+    [Type.ARCHIVE]= { _("Archive"), "Archive"},
+    [Type.ALBUM]= { _("Album"), "Album"},
+    [Type.WEBSITE]= { _("Web site"), "Web site"},
+    [Type.BOOKSTORE]= { _("Bookstore"), "Bookstore"},
+    [Type.COLLECTION]= { _("Collection"), "Collection"},
+    [Type.SAFE]= { _("Safe"), "Safe"}}
+
+local URL = {
+    private=1, --bool
+    path=2, --string
+    desc=3, --string
+    type=4  --type
+    }
+local URL_type={
+    UNKNOWN = -1,
+    CUSTOM = 0,
+    EMAIL = 1,
+    WEB_HOME = 2,
+    WEB_SEARCH = 3,
+    WEB_FTP = 4}
+URL_type._CUSTOM = URL_type.CUSTOM
+URL_type._DEFAULT = URL_type.UNKNOWN
+
+local URL_tpes = {
+    [URL_type.UNKNOWN]= {_("Unknown"), "Unknown"},
+    [URL_type.CUSTOM]= {_("Custom"), "Custom"},
+    [URL_type.EMAIL]= {_("E-mail"), "E-mail"},
+    [URL_type.WEB_HOME]= {_("Web Home"), "Web Home"},
+    [URL_type.WEB_SEARCH]= {_("Web Search"), "Web Search"},
+    [URL_type.WEB_FTP]= {_("FTP"), "FTP"}}
+
+function Repo.biblatex(h)
+    local rep = Repo(h)
+    local data = rep.blob_data
+    local repo_type =Types[data[Blob.type][1]][1]
+--print(util.dump(data))
+
+--print(util.dump(Types[data[Blob.type][1]]))
+    
+    local be = "@repository{"..rep.gramps_id..",\n"
+    if #rep.name > 0 then be=be.."title={"..rep.name.."},\n" end
+    if #data[Blob.name] > 0 then be=be.."name={"..data[Blob.name].."},\n" end
+    be=be.."type={"..repo_type.."},\n"
+    
+    local urls = data[Blob.urls]
+    for i,url in pairs(urls) do
+        --url[URL.private]
+        if url[URL.type][1] ==URL_type.EMAIL then 
+            be=be.."email={"..url[URL.path].."},\n"
+        end
+        if url[URL.type][1] == URL_type.WEB_HOME or url[URL.type][1] == URL_type.WEB_SEARCH then
+            be=be.."web={"..url[URL.path].."},\n"
+        end
+        if url[URL.type][1] == URL_type.WEB_FTP  then
+            be=be.."ftp={"..url[URL.path].."},\n"
+        end
+        if 0<#url[URL.desc] then be=be.."description={"..url[URL.desc].."},\n" end
+    end
+    
+    local addrs = data[Blob.address_list]
+    for i,addr in pairs(addrs) do
+        print(util.dump(addr))
+        local a = locality(addr)
+        be = be .. "address={".. a:string().."},\n"
+    end
+    
+    return be.."}\n"
+end
+
+
+local function get(h,s)
+    local index = {handle=1, gramps_id=2,type=3,name=4,urls=7}    
+    --if i==4 then return data[4][1] end
+    return repositories[h].blob_data[index[s]]
+end
+
+local function check_handle(req)
+    if type(req)=="string" then
+        if #req >6 then
+            handle=req
+        else
+            handle  = id_handle[req] or query.get_handle_from_id(req)
+        end
+    end
+    return handle
+end
+
+function Repo:new(req)
+    local handle = check_handle(req)
+    if repositories[handle] then
+        return repositories[handle]
+    else
+        r = query.get_repository_from_handle(handle,true)
+        if r[1] then
+            repositories[handle]=r[1]
+            id_handle[r[1].gramps_id]=handle
+            r[1].get = function(s) return get(handle,s) end
+            return r[1]
+        else
+            return(nil)
+        end
+    end
+end
+
+function Repo.of_source(srs_handle)
+    res={}
+    for i,r in pairs(query.get_repository_from_source(srs_handle)) do
+        if not repositories[r.handle] then 
+            repositories[r.handle]=r
+            id_handle[r.gramps_id]=r.handle
+            r.get = function(str) return get(r.handle,str) end           
+        end
+        table.insert(res,r.handle)
+    end
+    return res
+end
+
+
+function Repo.all()
+    local r = query.get_repository_from_handle(nil,true)
+    for i,m in ipairs(r) do
+        order[i]={m.handle,m.name}
+        repositories[m.handle] = m
+    end
+    table.sort(order, function(a, b) return a[2] < b[2] end )
+end
+
+-------------------------------------
+-- Set the metatable to the module
+-------------------------------------
+local function repository_pairs(t)
+    local function iterator(tbl, key)
+        key = key + 1
+        if key <= #order then
+            --print(key)
+            return key, repositories[order[key][1]]
+        end
+    end
+    return iterator, t,1
+end
+
+setmetatable(Repo, {
+    __call = function(_,handle)
+        return Repo:new(handle)
+    end,
+
+    __index = function(_,handle)
+        return Repo:new(handle)
+    end,
+
+    __newindex = function(_,handle,p)
+        repositories[handle]=p
+    end,
+
+    __pairs = repository_pairs
+
+})
+
+if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then
+query.init("/home/marc/Nextcloud/gramps/grampsdb/63a99d81/sqlite.db")
+
+    local id = "R0001"
+    local m = Repo[id]
+    print(util.dump(m))
+    Repo.all()
+    
+    
+    for i,h in pairs(Repo) do
+        print(Repo.biblatex(h.handle))
+    end
+else
+    return Repo
+end
+--[[
+@misc{Doe:2009:Online,
+author = {author},
+title = {Title of Citation},
+year = {2010 (accessed December 7, 2014)}, 
+howpublished = "\url{http://www.myurl.com}"}
+]]--
+
+--[[
+            "type": "object",
+            "title": _("Repository"),
+            "properties": {
+                "_class": {"enum": [cls.__name__]},
+               1 "handle": {"type": "string",
+                           "maxLength": 50,
+                           "title": _("Handle")},
+               2 "gramps_id": {"type": "string",
+                              "title": _("Gramps ID")},
+               3 "type": RepositoryType.get_schema(),
+               4 "name": {"type": "string",
+                         "title": _("Name")},
+               5 "note_list": {"type": "array",
+                              "items": {"type": "string",
+                                        "maxLength": 50},
+                              "title": _("Notes")},
+               6 "address_list": {"type": "array",
+                                 "items": Address.get_schema(),
+                                 "title": _("Addresses")},
+               7 "urls": {"type": "array",
+                         "items": Url.get_schema(),
+                         "title": _("URLs")},
+               7 "change": {"type": "integer",
+                           "title": _("Last changed")},
+               8 "tag_list": {"type": "array",
+                             "items": {"type": "string",
+                                       "maxLength": 50},
+                             "title": _("Tags")},
+               9 "private": {"type": "boolean",
+                            "title": _("Private")}
+            }
+        }
+
+            }
+        }
+
+]]--

@@ -1,0 +1,22 @@
+\documentclass{article}
+
+\usepackage{luacode}
+\usepackage{luapackageloader}
+
+
+\newcommand\loadgramps{\directlua{if not grps then grps = require("gramps") end }}%
+
+\newcommand{\grampsdatabase}[1]{%
+    \loadgramps%
+    \directlua{
+    grps.setdatabase('\luaescapestring{#1}')}}
+
+\grampsdatabase{../example/sqlite.db}
+
+
+\directlua{grps.generate_data()}
+
+\stop
+
+
+

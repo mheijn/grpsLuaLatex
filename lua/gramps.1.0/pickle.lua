@@ -1,7 +1,7 @@
 local util=require("gramps.util")
-local print=require("mh.print")
-local cm = require("gramps.picklecommands")
+local print=require("gramps.output")
 
+local cm = require("gramps.picklecommands")
 local CODE = cm.COM
 local REV_CODE = cm.RCOM
 
@@ -716,7 +716,7 @@ function depickle.find_class(module, name)
         end
         print.i("Require module "..module.." name:"..name)
         if "builtins"==module then
-            _G[name] = require('gramps.builtins')[name]
+            _G[name] = require('builtins')[name]
         else
             _G[name] = require(module)
         end

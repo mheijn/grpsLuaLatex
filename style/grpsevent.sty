@@ -36,15 +36,14 @@
 \else% Long text person
 \doitem[\makehijzij{\grpssex}]{}%
 \getlongeventtype{#1} %
+\ifx&#5&{}\else%
 \ifcase#3{\grpsTop}\or{\grpsTvoor}\or{\grpsTna}\or{\grpsTrond}%
-    \or{\grpsTvan}\or{\grpsTtussen}\or{}\else{}\fi%
+    \or{\grpsTvan}\or{\grpsTtussen}\or{}\else{}\fi\fi%
 \ifthenelse{#3 < 6}{%
-\ifx&#5&{leeg}\else\getlongdate{#5}\fi%
+\ifx&#5&{}\else\getlongdate{#5}\fi%
 \ifthenelse{#3 > 3}{ \grpsTtot\ifx&#7&\relax\else\getlongdate{#7}\fi}{}%
 \ifx&#6&\relax\else\ \grpsTte\,#6\fi%
-\typeout{#9}%
-\ifx&#9&\relax\else\ (#9)\fi%
-}%
+\ifx&#9&\relax\else\ifthenelse{#1>19}{#9}{\ifthenelse{\equal{#9}{civil}}{}{(#9)}}\fi}%
 {#9}%text only
 \fi%
 }

@@ -97,7 +97,7 @@ local function proces_query(query,blob)
         while row do
             tel=tel+1
             -- save blob_data
-            if blob and row['blob_data'] then
+            if blob then
             ----------
                 row['blob_data']=pickle.depickle(row['blob_data'])
             ----------
@@ -232,11 +232,9 @@ function q.get_media_from_handle(handle,blob)
     return res
 end
 
-function q.get_person_from_media(handle)
-    local ret={}
-    local refs = proces_query("SELECT obj_handle FROM reference WHERE ref_handle='"..handle.."' AND obj_class = 'Person'")
-    for i,ref in ipairs(refs) do table.insert(ret,ref.obj_handle) end
-    return ret
+function q.get_person_from_media(handle,blob)
+    if blob==nil then blob=true end
+    return(proces_query("SELECT obj_handle FROM reference WHERE ref_handle='"..handle.."' AND obj_class = 'Person'"))
 end
 
 -- Source

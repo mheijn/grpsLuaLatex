@@ -1,208 +1,93 @@
-local query=require("gramps.queries")
-local util=require("gramps.util")
-local event=require("gramps.events")
-local date=require("gramps.date")
+if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then require("gramps") end
+if gramps and not gramps.Family.all then
 
-local Family = {_TYPE='module', _NAME='gramps.family' ,_VERSION='0.9.10.2024'}
+    local _ = require("mh.gettext")
+    local print = require("mh.print")
+    local util =require("gramps.util")
+    DEBUG=4
 
-local family_meta = {}
+    function gramps.Family:sort_on() return {self:get_family_date()} end
 
-local families = {}
-local order = {}
-local id_handle = {}
-
-local function check_handle(req)
-if type(req)=="string" then
-if #req >6 then
-handle=req
-else
-handle  = id_handle[req] or query.get_family_handle_from_id(req)
-end
-end
-return handle
-end
-
-function Family:new(req)
-    --print("Family:new",handle)
-    --print("Family:new",print(util.dump(families)))
-    local handle = check_handle(req)
-
-    if families[handle] then
-return families[handle]
-else
-r = query.get_family_from_handle(handle)
-if r[1] then
-families[handle]=r[1]
-id_handle[r[1].gramps_id]=handle
-return r[1]
-else
-return(nil)
-end
-end
-end
-
-local function check(handle)
-f=Family(handle)
---print("check_handle",p.handle)
-return f.handle
-end
-
-function Family.all()
-local rf, rl = query.get_family_from_handle(nil,false)
-for i,rf in ipairs(r) do
-order[i]=f.handle
-families[p.handle] = f
-end
-end
-
-function Family.events(handle)
-if Family[handle].events == nil then
-        Family[handle].events = event.events(handle)
---Family[handle].events = query.get_events_from_handle(handle)
-end
-return Family[handle].events
-end
-
-local event_types = {event.TYPE.ENGAGEMENT, event.TYPE.MARRIAGE, event.TYPE.DIVORCE, event.TYPE.ANNULMENT, event.TYPE.MARR_SETTL, event.TYPE.MARR_LIC,
-               event.TYPE.MARR_CONTR, event.TYPE.MARR_BANNS, event.TYPE.DIV_FILING, event.TYPE.MARR_ALT}
-
-function get_family_date(handle)
-    local ret=0
-    local evs=Family.events(handle)
-    --print(util.dump(evs))
-    if evs then for i, evh in ipairs(evs) do
-        local blob=event[evh].blob_data
-        --print(util.dump(blob))
-        if blob[4] and blob[4][4] then
-            ret = date.days_from_year_0(blob[4][4][3],blob[4][4][2],blob[4][4][1])
-            if ret>0 then break end
-        end
-    end end
-    return ret
-end
-
-function Family.get_person_family(handle)
-    local parents = {}
-    local child = {}
-    local r = query.get_person_family(handle)
-
-    for i,f in ipairs(r) do
-        if families[f.handle]==nil then
-            families[f.handle]=f
-        end
-        if handle==f.father_handle or handle==f.mother_handle then
-            Family[f.handle].date = get_family_date(f.handle)
-            table.insert(child,f.handle)
-        else
-            table.insert(parents,f.handle)
-            --print("parents of",handle==father_handle)
-        end
-    end
-    table.sort(child, function(a, b) return Family[a].date <Family[b].date end )
-
-    return child, parents
-end
-
-function Family.has_children(fhandle)
-     if #Family.get_children(fhandle) > 0 then
-        return true
-    else
-        return false
-    end
-end
-
-function Family.get_children(fhandle)
-    local f=Family[fhandle]
-    if f.children == nil then
-        f.children = {}
-        local cs = query.get_persons_from_family(f.handle)
-        for i,h in ipairs(cs) do
-            if h~=f.father_handle and h~=f.mother_handle then
-                table.insert(Family[fhandle].children,h)
+    function gramps.Family.all()
+        local name1,name2,year
+        local s=""
+        
+        gramps.Family()
+        for i, h in pairs(gramps.Family.Order) do
+            --print(i,"handle",h[1])
+            
+            local f = gramps.Family(h[1])
+            --print(util.dump(h))
+            --print(f)
+            if f.father_handle then
+                local p1 = gramps.Person(f.father_handle)
+                name1 =p1:fullname()
+            else name1="" end
+            if f.mother_handle then
+                local p2 = gramps.Person(f.mother_handle)
+                name2 =p2:fullname()
+            else name2="" end
+            
+            if h[2][1] > 0 then
+                year = tostring(gramps.Date.from_days_to_years(h[2][1]))
+            else 
+                year = ""
             end
-         end
+		
+            local line = string.format("%-7s%-25s%-25s %s",
+                f.gramps_id,name1,name2,year)
+            print(line)
+            --s=s.."\n"..line
+        end
+        return s
     end
-    return Family[fhandle].children
-end
 
--------------------------------------
--- Set the metatable to the module
--------------------------------------
-local function family_iterator(order, i)
---print(order,key)
-i = i + 1
-    if i <= #order then
---print(i,order[i])
-        return i, families[order[i]]
+
+--    local event_types = {event.TYPE.ENGAGEMENT, event.TYPE.MARRIAGE, event.TYPE.DIVORCE, event.TYPE.ANNULMENT, event.TYPE.MARR_SETTL, event.TYPE.MARR_LIC,
+--                event.TYPE.MARR_CONTR, event.TYPE.MARR_BANNS, event.TYPE.DIV_FILING, event.TYPE.MARR_ALT}
+
+    function gramps.Family:get_family_date()
+        
+        local ret=0
+        local t=0
+        for i,er in pairs(self.event_ref_list) do
+            local e = gramps.Event(er.ref)
+            if e.date then 
+                local v=e.date:days_from_year_0()
+                if v>0 then ret=ret+v;t=t+1; end
+            end
+        end
+        return math.floor(ret/t)
     end
+
+    function gramps.Family:has_children()
+        return 0 < #self.child_ref_list
+    end
+
+    function gramps.Family:events()
+        local evs={}
+        for i,ref in pairs(self.event_ref_list) do
+            local ev = gramps.Event(ref.ref)
+            table.insert(evs,ev) 
+        end
+        return evs
+    end
+
+    
 end
 
-setmetatable(Family, {
-    __call = function(_,handle)
-        return Family:new(handle)
-    end,
+if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then
+    local util =require("gramps.util")
+--	gramps.SetDatabase("/home/marc/Nextcloud/gramps/grampsdb/63a99d81/sqlite.db")
+	gramps.SetDatabase("/home/marc/Nextcloud/gramps/grampsdb/67460b08/sqlite.db")
 
-__index = function(_,handle)
-return Family(handle)
-end,
-
-__newindex = function(_,handle,p)
-families[handle]=p
-end,
-
-__pairs = function(_)
-        return family_iterator, order, 0  -- Return the custom iterator function, table, and initial index
+    local f=gramps.Family('F0001')
+    local f2=gramps.Family('F0014')
+    print(f)
+    for i,ev in pairs(f:events()) do print(ev) end
+    --print(f:get_family_date())
+    
+    --print(gramps.Family.all())
+else
+    return gramps.Family
 end
-})
-
-return Family
---[[
-       return {
-            "type": "object",
-            "title": _("Family"),
-            "properties": {
-                "_class": {"enum": [cls.__name__]},
-                "handle": {"type": "string",
-                           "maxLength": 50,
-                           "title": _("Handle")},
-                "gramps_id": {"type": "string",
-                              "title": _("Gramps ID")},
-                "father_handle": {"type": ["string", "null"],
-                                  "maxLength": 50,
-                                  "title": _("Father")},
-                "mother_handle": {"type": ["string", "null"],
-                                  "maxLength": 50,
-                                  "title": _("Mother")},
-                "child_ref_list": {"type": "array",
-                                   "items": ChildRef.get_schema(),
-                                   "title": _("Children")},
-                "type": FamilyRelType.get_schema(),
-                "event_ref_list": {"type": "array",
-                                   "items": EventRef.get_schema(),
-                                   "title": _("Events")},
-                "media_list": {"type": "array",
-                               "items": MediaRef.get_schema(),
-                               "title": _("Media")},
-                "attribute_list": {"type": "array",
-                                   "items": Attribute.get_schema(),
-                                   "title": _("Attributes")},
-                "lds_ord_list": {"type": "array",
-                                 "items": LdsOrd.get_schema(),
-                                 "title": _("LDS ordinances")},
-                "citation_list": {"type": "array",
-                                  "items": {"type": "string",
-                                            "maxLength": 50},
-                                  "title": _("Citations")},
-                "note_list": {"type": "array",
-                              "items": {"type": "string",
-                                        "maxLength": 50},
-                              "title": _("Notes")},
-                "change": {"type": "integer",
-                           "title": _("Last changed")},
-                "tag_list": {"type": "array",
-                             "items": {"type": "string",
-                                       "maxLength": 50},
-                             "title": _("Tags")},
-                "private": {"type": "boolean",
-                            "title": _("Private")}
-]]--

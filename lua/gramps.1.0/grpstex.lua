@@ -5,6 +5,9 @@ local util   = require("gramps.util")
 local events = require("gramps.events")
 local place  = require("gramps.place")
 local media  = require("gramps.media")
+local note  = require("gramps.note")
+local cite  = require("gramps.citation")
+local source  = require("gramps.source")
 local print = require("gramps.output")
 
 --local = require("")
@@ -28,7 +31,10 @@ OPTION = {O_CENTRAL=1,
     SPOUSEPARENTS=8,
     MEDIA=9,
     ITEMIZE=10,
-    SIBLINGS=11}
+    SIBLINGS=11,
+    NOTES=12,
+    CITE=13
+    }
 grps.OPTION = OPTION
 ---
 -- @param a1 if a2==nil a1 are/is the option(s) set else a2
@@ -54,9 +60,9 @@ grps.set_options = set_options
 
 local function remove_options(option,op)
     if type(op)=="table" then
-        for i,v in ipairs(op) do option=option ~ 2^v end
+        for i,v in ipairs(op) do option=option & ~(2^v) end
     else
-        option = option ~ 2^op
+        option = option & ~(2^op)
     end
 
     return option
@@ -173,6 +179,7 @@ function grps.print_person(h,max_level,level,opts,person_type)
     sp=sp.."}"
 
     sp=sp.."\\index{"..person.familyname(h).."!"..person.firstname(h)..person(h).gramps_id.."@"..person.firstname(h).."}"
+    if bin_set(opt,OPTION.CITE) then sp=sp..get_citations(h,person_type) end    
     if person_type ~=OPTION.O_PARENTS  and not bin_set(opt,OPTION.ITEMIZE) then sp=sp..".\n"end
 
     line = line .. sp
@@ -181,25 +188,32 @@ function grps.print_person(h,max_level,level,opts,person_type)
     nopoint  = person_type ==OPTION.O_PARENTS
     --------- Events --------------
     if pe and bin_set(opt,OPTION.LIFEEVENTS) then
-        sl = set_events(opt,p,pe,events.LifeEvents,sentence,nopoint)
+        local sl = set_events(opt,p,pe,events.LifeEvents,sentence,nopoint)
         line = line .. sl
     end
 
     if pe and bin_set(opt,OPTION.VOCATIONAL) then
-        sl = set_events(opt,p,pe,events.Vocational,sentence,nopoint)
+        local sl = set_events(opt,p,pe,events.Vocational,sentence,nopoint)
         line = line .. sl
     end
 
     if pe and bin_set(opt,OPTION.VOCATIONAL) then
-        sl = set_events(opt,p,pe,events.Academic,sentence,nopoint)
+        local sl = set_events(opt,p,pe,events.Academic,sentence,nopoint)
         line = line .. sl
     end
 
     if pe and bin_set(opt,OPTION.RESIDENCE) then
-        sl = set_events(opt,p,pe,events.Residence,sentence,nopoint)
+        local sl = set_events(opt,p,pe,events.Residence,sentence,nopoint)
         line = line .. sl
     end
-
+    
+    
+    --------- Notes ----------------
+    if bin_set(opt,OPTION.NOTES)  then
+        local sl=txt_note(p.handle,person_type)
+        line = line ..sl
+    end
+        
     -------- Parents ------------------
     if bin_set(opt,OPTION.PARENTS) and person_type ~= OPTION.O_CHILDREN then
         line=line..grps.parents(h,max_level,level,opts)
@@ -295,7 +309,7 @@ function grps.print_person(h,max_level,level,opts,person_type)
             else
                 if bin_set(opt, OPTION.CHILDREN) then
                     --print("LF1\\\\")
-                    if #fams > 1 then rs = rs.." ("..family_nr..") " end
+                    --if #fams > 1 then rs = rs.." ("..family_nr..") " end
                     rs = rs .. grps.children(kwartier_family_handle,max_level,level,opts)
                 end
             end
@@ -322,6 +336,7 @@ end
 function grps.relation(fh,p,times,opt)
     local f = family[fh]
     local fe = family.events(f.handle)
+    local sfe={}
     --dprint(util.dump(f))
 
     local s,main_handle,spouse_handle
@@ -398,6 +413,11 @@ function grps.siblings(ph,max_level,level,options)
         local sibls = family.get_children(fh)
         local sorted = person.sort_person_handles(sibls)
         if #sibls > 0 then
+            if bin_set(options[OPTION.O_CENTRAL],OPTION.LONG) then -- LONG --
+                s=s..person.firstname(ph)
+                if #sibls == 1 then s=s.." \\grpsTsibling" else s=s.." \\grpsTsiblings" end
+            end
+
             s=s.."\\begin{grampslist"..util.roman(level).."}"
             for j,ic in ipairs(sorted) do
                 s=s.."\\item["..j.."]"
@@ -493,40 +513,43 @@ function get_tex_event_by_type(evs,ev_type)
     local s_ret=""
     local s=""
 --print.i("evs = ",util.dump(evs))
-for i,eh in ipairs(evs) do
+    for i,eh in ipairs(evs) do
         local ev   = events[eh]
-local blob = ev.blob_data
+        local blob = ev.blob_data
         --dprint(i,eh,blob[3][1],ev_type)
 --io.write(util.dump(ev))
         if ev_type == blob[3][1] then
-s="\\grpsEvent{"..ev_type.."}"
+            s="\\grpsEvent{"..ev_type.."}"
 
-if blob[4] and blob[4][4] then
-s=s.."{"..blob[4][1].."}"
-s=s.."{"..blob[4][2].."}"
-s=s.."{"..blob[4][3].."}"
-s=s.."{"..blob[4][4][3]..
-util.is_zero(blob[4][4][2],"","-"..blob[4][4][2])..
-util.is_zero(blob[4][4][1],"","-"..blob[4][4][1]).."}"
-else
-s=s.."{0}{0}{0}{}"
+            if blob[4] and blob[4][4] then
+                s=s.."{"..blob[4][1].."}"
+                s=s.."{"..blob[4][2].."}"
+                s=s.."{"..blob[4][3].."}"
+                s=s.."{"..blob[4][4][3]..
+                util.is_zero(blob[4][4][2],"","-"..blob[4][4][2])..
+                util.is_zero(blob[4][4][1],"","-"..blob[4][4][1]).."}"
+            else
+                s=s.."{0}{0}{0}{}"
 --io.write(util.dump(blob))
-end
-s=s.."{"..place.name(ev.place).."}"
-if blob[4] and blob[4][4] and blob[4][4][5] and blob[4][2]>3 then
-s=s.."{"..blob[4][4][7]..
-util.is_zero(blob[4][4][6],"","-"..blob[4][4][6])..
-util.is_zero(blob[4][4][5],"","-"..blob[4][4][5]).."}"
-else
-s=s.."{}"
-end
-s=s.."{}{"..unescape(ev.description).."}"
+            end
+            s=s.."{"..place.name(ev.place).."}"
+            if blob[4] and blob[4][4] and blob[4][4][5] and blob[4][2]>3 then
+                s=s.."{"..blob[4][4][7]..
+                util.is_zero(blob[4][4][6],"","-"..blob[4][4][6])..
+                util.is_zero(blob[4][4][5],"","-"..blob[4][4][5]).."}"
+            else
+                s=s.."{}"
+            end
+            s=s.."{}{"..unescape(ev.description).."}"
+            s=s..foot_note(ev.handle)
+            s=s..get_citations(ev.handle,1) 
+
         else
             s=""
         end
         s_ret = util.comma_con(s_ret,s)
-end
-return s_ret
+    end
+    return s_ret
 end
 
 local function get_textree_event_by_type(h,ev_type)
@@ -730,6 +753,47 @@ function grps.allmedia()
         if i>20 then break end
         grps.picture(m.handle)
     end
+end
+
+function txt_note(h,pers_type)
+    local s=""
+    local notes = note.of_object(h)
+    for i,h in pairs(notes) do
+        if pers_type == OPTION.O_CENTRAL then s= s.."\\newline\\noindent" end
+        s=s.." \\emph{"..note[h].get("text").."}"..
+            "\\textsuperscript{"..note[h].gramps_id.."} "
+        if pers_type == OPTION.O_CENTRAL then s= s.."\\newline\\noindent" end
+    end
+    return s
+end
+
+function foot_note(h)
+    local s=""
+    local notes = note.of_object(h)
+    for i,h in pairs(notes) do
+        s=s.."\\footnote{"..note[h].get("text").."}"
+    end
+    return s
+end
+
+function get_citations(obj_h, pers_type)
+    s=""
+    local cites = cite.of_object(obj_h)
+    --if #cites>0 then s=s.."\\cite{" end
+    for i,h in pairs(cites) do
+        --if i > 1 then s=s.."," end
+        page=cite[h].get("page")
+        s=s.."CITE"..page.."="
+        local hs=cite[h].source[1]
+        if hs then  
+            s=s.."cite"
+            if #page>0 then s=s.."["..page.."]" end
+            s=s.."("..hs..")"
+        end
+        --s=s.."{"..source[hs].gramps.id.."}"
+    end
+    --if #cites>0 then s=s.."}" end
+    return s
 end
 
 function grps.allperson()

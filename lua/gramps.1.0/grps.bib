@@ -1,0 +1,1022 @@
+@misc{S0002,
+title={Brouwer},
+author={},
+}
+@misc{S0003,
+author={},
+title={Family Search},
+url={{https://familysearch.org/}{Family Search}},
+}
+@misc{S0004,
+title={Trouwboekje},
+author={},
+journal={Family archief Heijn},
+howpublished={},
+}
+@misc{S0005,
+title={Geen titel - ID S0005},
+author={},
+subtitle={Rijksarchiefdienst},
+}
+@misc{S0006,
+title={Geen titel - ID S0006},
+author={},
+titleaddon={akte 102},
+}
+@misc{S0007,
+title={Geen titel - ID S0007},
+author={},
+note={akte 47},
+}
+@misc{S0008,
+title={Geen titel - ID S0008},
+author={},
+note={Zeeuws archief 25.13 akte 2},
+}
+@misc{S0300,
+title={Het Geslacht Pouwels Doedsz},
+author={J.Doets},
+}
+@misc{S0301,
+title={Kwartier van Ooijevaar},
+author={Remko Ooijevaar},
+note={Familie Ooijevaar},
+url={{http://www.ooijevaar.info/main.htm}{Genealigie familie Ooijevaar}},
+}
+@misc{S0302,
+title={DTB NG Bovenkarspel},
+author={},
+}
+@misc{S0303,
+title={Aalsmeeerse Stambomen},
+author={Stichting 'Oud Aalsmeer', Conissie Genealogie},
+}
+@misc{S0304,
+title={Erelijst van gevallenen 1940-1945},
+author={},
+}
+@misc{S0305,
+title={Dopen 1752-1812; Trouwen 1655-1809, Ned. Hervormd (Krommeniedijk)},
+author={},
+note={Family Search},
+url={https://familysearch.org/},
+}
+@misc{S0306,
+title={Genealogie Van Veldhuizen},
+author={A.van Veldhuizen},
+note={Genealogie van Veldhuizen},
+url={https://www.genealogieonline.nl/genealogie-van-veldhuizen/},
+}
+@misc{S0307,
+title={NA 607 Jan Claasz Bost 1701-1716 Edam},
+author={},
+}
+@misc{S0308,
+title={Archief van de Weeskamer van Edam, Uittreksels uit de staatboeken 1621 - 1811},
+author={Fred Simons},
+note={Waterlands archief},
+url={http://waterlandsarchief.nl/images/stories/pdf/ora_edam-weeskamer_1686-1716.pdf},
+}
+@misc{S0309,
+title={Schipper Pieter Claasz Cramer uit Warder},
+author={},
+note={Schipper Pieter Claasz Cramer uit Warder},
+url={{http://home.hccnet.nl/mwk/zb/cramer.html}{Stamboom Cramer}},
+}
+
+@misc{S000,
+}
+
+@online{R001,
+  author = {MultiMedia LLC},
+  title = {{MS Windows NT} Kernel Description},
+  year = 1999,
+  url = {http://web.archive.org/web/20080207010024/http://www.808multimedia.com/winnt/kernel.htm},
+  urldate = {2010-09-30}
+}
+
+\DeclareFieldFormat{date}{\mkbibparens{#1}}
+\DeclareFieldFormat[article,periodical]{date}{#1}
+
+% arara: lualatex
+% arara: biber
+% arara: lualatex
+% arara: lualatex
+
+
+\begin{filecontents}[overwrite]{archive.bib}
+
+@archive{folders45,
+   title={The Pieman Letters},
+   sorttitle={Pieman Letters},
+    level1 = {Museum of All Things},
+    level2 = {Historical Collections Department},
+    level3 = {Station Records 1790-1820},
+    level4 = {cat AB 123/486},
+    level5 = {box 2},
+    level6 = {folders 4-5},
+  related = {ffdoc1,ffdoc2, ffdoc3, ffdoc4, ffdoc12},
+  relatedtype = {archive},
+  keywords = {mv},
+}
+
+
+@archive{box2,
+   title={All About Pies},
+    level1 = {Museum of All Things},
+    level2 = {Historical Collections Department},
+    level3 = {Station Records 1790-1820},
+    level4 = {cat AB 123/486},
+    level5 = {box 2},
+  related     = {box2a,box2b,box2c},
+  relatedtype = {archive},
+  keywords = {mv},
+}
+
+
+
+
+
+@archive{test1,
+    level1 = {Museum of All Things},
+    level2 = {Historical Collections Department},
+    level3 = {Station Records 1790-1820},
+    level4 = {cat AB 123/486},
+    level5 = {box 2},
+    level6 = {folders 4-5},
+    level7 = {document 12},
+  itemattr1 = {test1Letter},
+  itemattr2 = {from Simon to the Pieman},
+  itemattr3 = {15 February 1790},
+  shortarchive  ={Pieman Letter},
+}
+
+
+    @archive{box2a,
+    level6 = {folders 1-2},
+  itemattr1 = {Correspondence in Frensshe},
+  xref = {box2},
+options = {dataonly},
+  keywords = {mv},
+  }
+
+
+@archive{box2b,
+    level6 = {folder 3},
+  itemattr1 = {Pastry recipes},
+  xref = {box2},
+options = {dataonly},
+  keywords = {mv},
+  }
+
+
+@archive{box2c,
+    level6 = {folders 4-5},
+  itemattr1 = {The Pieman Letters},
+  xref = {box2},
+options = {dataonly},
+  keywords = {mv},
+  }
+
+
+@archive{ffdoc4,
+    level7 = {\ldots},
+  itemattr1 = {: various other sundry letters},
+%  itemattr2 = {from Simon to the Pieman},
+%  itemattr3 = {15 February 1790},
+  xref = {folders45},
+%   options = {dataonly},
+  keywords = {mv},
+  }
+
+
+@archive{ffdoc12,
+    level7 = {document 12},
+  itemattr1 = {ffdoc12Letter},
+  itemattr2 = {from Simon to the Pieman},
+  itemattr3 = {15 February 1790},
+  xref = {folders45},
+%   options = {dataonly},
+  keywords = {mv},
+  }
+
+@archive{ffdoc1,
+    level7 = {document 1},
+  itemattr1 = {Letter},
+  itemattr2 = {from Simon to the Pieman},
+  itemattr3 = {12 February 1790},
+  xref = {folders45},
+options = {dataonly},
+  keywords = {mv},
+  }
+
+@archive{ffdoc2,
+    level7 = {document 2},
+  itemattr1 = {Letter},
+  itemattr2 = {from Simon to the Pieman},
+  itemattr3 = {14 February 1790},
+  xref = {folders45},
+options = {dataonly},
+  keywords = {mv},
+  }
+
+@archive{ffdoc3,
+    level7 = {document 3},
+  itemattr1 = {Letter},
+  itemattr2 = {from Simon to the Pieman},
+  itemattr3 = {15 March 1790},
+  xref = {folders45},
+    options = {dataonly},
+  keywords = {mv},
+  }
+
+@book{abook,author={An Author},title={A Title},publisher={A Publisher},date={1795},location={Paris and London},}
+\end{filecontents}
+
+
+%--------------------------------
+
+\begin{filecontents}[overwrite]{bibdm_archive.dbx}
+
+\DeclareDatamodelEntrytypes{archive}
+
+\DeclareDatamodelFields[type=field, datatype=literal]{
+  level1,
+  level2,
+  level3,
+  level4,
+  level5,
+  level6,
+  level7,
+  level8,
+  level9,
+  level10,
+  level11,
+  level12,
+  shortarchive,
+  itemattr1,
+  itemattr2,
+  itemattr3,
+  }
+
+%======================================
+\DeclareDatamodelEntryfields[archive]{%
+  level1,
+  level2,
+  level3,
+  level4,
+  level5,
+  level6,
+  level7,
+  level8,
+  level9,
+  level10,
+  level11,
+  level12,
+  shortarchive,
+  itemattr1,
+  itemattr2,
+  itemattr3,
+  }
+
+
+
+\end{filecontents}
+
+%--------------------------------
+
+
+
+\documentclass{article}
+
+\usepackage{xcolor}
+\pagecolor{green!3}
+
+\usepackage{fontspec}
+\setmainfont{Noto Serif}
+\newcommand{\cmm}[1]{{\large\ttfamily\color{blue}\textbackslash#1}}
+
+
+%\PassOptionsToPackage{<options>}{<package>}\RequirePackage{<package>}
+
+\usepackage[style=british]{csquotes}
+\usepackage[
+    datamodel=bibdm_archive,
+%   style=ext-authoryear,%numeric,%oxnotes,
+    minxrefs=1,
+    locallabelwidth=true,
+    citecounter=true,
+    citetracker=true,
+    datecirca=true,
+    date=long,
+    minxrefs=1,
+    backend=biber,
+    sorting=nyt,
+        ]{biblatex-chicago}
+%       ]{biblatex}
+
+
+%============  bib overrides
+%\DeclareNameAlias{sortname}{given-family}
+%%============  bib resources
+\addbibresource{archive.bib}
+
+%============  bibliography commands
+
+
+
+\newcommand\showcmnd[1]{%
+\textbackslash\texttt{#1}%
+}
+
+
+\newcommand\bibhlcolour{red}
+\newcommand\bibhlformat[1]{\sffamily\bfseries\textcolor{\bibhlcolour}{#1}}
+
+
+\newtoggle{littleendian}
+\toggletrue{littleendian}
+
+
+\DeclareFieldFormat{level1}{#1}
+\DeclareFieldFormat{level2}{%
+    \ifboolexpr{
+    test {\ifbibliography}
+    and
+     test {\iffieldundef{level1}}
+     }
+    {{\bibhlformat{#1}}}% T
+    {#1}% F
+}%
+
+\DeclareFieldFormat{level3}{%
+    \ifboolexpr{
+    test {\ifbibliography}
+    and
+     test {\iffieldundef{level2}}
+     }
+    {{\bibhlformat{#1}}}% T
+    {#1}% F
+}%
+
+\DeclareFieldFormat{level4}{%
+    \ifboolexpr{
+    test {\ifbibliography}
+    and
+     test {\iffieldundef{level3}}
+     }
+    {{\bibhlformat{#1}}}% T
+    {#1}% F
+}%
+
+\DeclareFieldFormat{level5}{%
+    \ifboolexpr{
+    test {\ifbibliography}
+    and
+     test {\iffieldundef{level4}}
+     }
+    {{\bibhlformat{#1}}}% T
+    {#1}% F
+}%
+
+\DeclareFieldFormat{level6}{%
+    \ifboolexpr{
+    test {\ifbibliography}
+    and
+     test {\iffieldundef{level5}}
+     }
+    {{\bibhlformat{#1}}}% T
+    {#1}% F
+}
+
+\DeclareFieldFormat{level7}{%
+    \ifboolexpr{
+    test {\ifbibliography}
+    and
+     test {\iffieldundef{level6}}
+     }
+    {{\bibhlformat{#1}}}% T
+    {#1}% F
+}
+
+
+
+
+\DeclareFieldFormat{level8}{%
+    \ifboolexpr{
+    test {\ifbibliography}
+    and
+     test {\iffieldundef{level7}}
+     }
+    {{\bibhlformat{#1}}}% T
+    {#1}% F
+}%
+
+\DeclareFieldFormat{level9}{%
+    \ifboolexpr{
+    test {\ifbibliography}
+    and
+     test {\iffieldundef{level8}}
+     }
+    {{\bibhlformat{#1}}}% T
+    {#1}% F
+}%
+
+\DeclareFieldFormat{level10}{%
+    \ifboolexpr{
+    test {\ifbibliography}
+    and
+     test {\iffieldundef{level9}}
+     }
+    {{\bibhlformat{#1}}}% T
+    {#1}% F
+}%
+
+\DeclareFieldFormat{level11}{%
+    \ifboolexpr{
+    test {\ifbibliography}
+    and
+     test {\iffieldundef{level10}}
+     }
+    {{\bibhlformat{#1}}}% T
+    {#1}% F
+}%
+
+\DeclareFieldFormat{level12}{#1}
+
+\DeclareFieldFormat{shortarchive}{\mkbibemph{#1}}
+\DeclareFieldFormat{itemattr1}{#1}
+\DeclareFieldFormat{itemattr2}{#1}
+\DeclareFieldFormat{itemattr3}{#1}
+
+%~~~~~~~~~~~~~~~~~~~
+% bibmacros
+%======================= getshortarchive
+\newbibmacro{getshortarchive}{%
+        \iffieldundef{shortarchive}{}{\printfield{shortarchive}}%
+}
+
+\newcommand\relateditemdelim{\setunit*{\addcomma\addspace}}%
+
+%======================= getarchiveall
+\newbibmacro{getarchiveall}{%
+      \usebibmacro{getarchive1}%
+        \relateditemdelim%
+      \usebibmacro{getarchive2}%
+        \relateditemdelim%
+      \usebibmacro{getarchive3}%
+        \relateditemdelim%
+      \usebibmacro{getarchive4}%
+        \relateditemdelim%
+      \usebibmacro{getarchive5}%
+        \relateditemdelim%
+      \usebibmacro{getarchive6}%
+        \relateditemdelim%
+      \usebibmacro{getarchive7}%
+        \relateditemdelim%
+      \usebibmacro{getarchive8}%
+        \relateditemdelim%
+      \usebibmacro{getarchive9}%
+        \relateditemdelim%
+      \usebibmacro{getarchive10}%
+        \relateditemdelim%
+      \usebibmacro{getarchive11}%
+        \relateditemdelim%
+      \usebibmacro{getarchive12}%
+}
+
+
+%======================= getitemattrall
+\newbibmacro{getitemattrall}{%
+      \usebibmacro{getitemattr1}%
+        \relateditemdelim%
+      \usebibmacro{getitemattr2}%
+        \relateditemdelim%
+      \usebibmacro{getitemattr3}%
+}
+
+
+%======================= getarchive
+\newbibmacro{getarchive}{%
+        \newunit%
+        \iftoggle{littleendian}%
+        {\usebibmacro{getitemattrall}}{\usebibmacro{getarchiveall}}%
+        \newunit%
+        \setunit*{\addcolon\addspace}%
+        \iftoggle{littleendian}%
+        {\usebibmacro{getarchiveall}}{\usebibmacro{getitemattrall}}%
+        \newunit%
+}
+
+
+%======================= getarchivegeneral
+\newbibmacro{getarchivegeneral}[1]{%
+        \iffieldundef{level#1}{}{\printfield{level#1}}%
+}
+
+%======================= getitemattrgeneral
+\newbibmacro{getitemattrgeneral}[1]{%
+        \iffieldundef{itemattr#1}{}{\printfield{itemattr#1}}%
+}
+
+
+%======================= getarchive1-12
+\newbibmacro{getarchive1}{\usebibmacro{getarchivegeneral}{1}}
+\newbibmacro{getarchive2}{\usebibmacro{getarchivegeneral}{2}}
+\newbibmacro{getarchive3}{\usebibmacro{getarchivegeneral}{3}}
+\newbibmacro{getarchive4}{\usebibmacro{getarchivegeneral}{4}}
+\newbibmacro{getarchive5}{\usebibmacro{getarchivegeneral}{5}}
+\newbibmacro{getarchive6}{\usebibmacro{getarchivegeneral}{6}}
+\newbibmacro{getarchive7}{\usebibmacro{getarchivegeneral}{7}}
+\newbibmacro{getarchive8}{\usebibmacro{getarchivegeneral}{8}}
+\newbibmacro{getarchive9}{\usebibmacro{getarchivegeneral}{9}}
+\newbibmacro{getarchive10}{\usebibmacro{getarchivegeneral}{10}}
+\newbibmacro{getarchive11}{\usebibmacro{getarchivegeneral}{11}}
+\newbibmacro{getarchive12}{\usebibmacro{getarchivegeneral}{12}}
+
+%======================= getitemattr1-3
+\newbibmacro{getitemattr1}{\usebibmacro{getitemattrgeneral}{1}}
+\newbibmacro{getitemattr2}{\usebibmacro{getitemattrgeneral}{2}}
+\newbibmacro{getitemattr3}{\usebibmacro{getitemattrgeneral}{3}}
+
+
+%++++++++++++++++++++++++++++++++++++++ reverse
+%======================= getarchiveallrev
+\newbibmacro{getarchiveallrev}{%
+      \usebibmacro{getarchive12}%
+        \relateditemdelim%
+      \usebibmacro{getarchive11}%
+        \relateditemdelim%
+      \usebibmacro{getarchive10}%
+        \relateditemdelim%
+      \usebibmacro{getarchive9}%
+        \relateditemdelim%
+      \usebibmacro{getarchive8}%
+        \relateditemdelim%
+      \usebibmacro{getarchive7}%
+        \relateditemdelim%
+      \usebibmacro{getarchive6}%
+        \relateditemdelim%
+      \usebibmacro{getarchive5}%
+        \relateditemdelim%
+      \usebibmacro{getarchive4}%
+        \relateditemdelim%
+      \usebibmacro{getarchive3}%
+        \relateditemdelim%
+      \usebibmacro{getarchive2}%
+        \relateditemdelim%
+      \usebibmacro{getarchive1}%
+}
+
+%======================= getarchiveallreva
+\newbibmacro{getarchiveallreva}{%
+      \newunit%
+        \iftoggle{littleendian}{\addcolon}{}%
+      \usebibmacro{getarchiveallrev}%
+}
+
+
+
+
+%======================= getarchiverev
+\newbibmacro{getarchiverev}{%
+        \newunit%
+        \iftoggle{littleendian}
+        {\usebibmacro{getitemattrall}}{\usebibmacro{getarchiveallreva}}%
+        \newunit%
+        \setunit*{\addcolon\addspace}%
+        \iftoggle{littleendian}
+        {\usebibmacro{getarchiveallreva}}{\usebibmacro{getitemattrall}}%
+        \newunit%
+}
+
+
+
+
+
+
+
+
+\newbibmacro*{related:archive}[1]{%
+  \entrydata*{#1}{%
+  {%
+        \togglefalse{littleendian}%
+    \printtext{--}%
+    \nopunct%
+    \usebibmacro{getarchive}%
+     }%
+}}
+
+
+%===
+\DeclareCiteCommand{\archive}{% prenote
+    \usebibmacro{prenote}%
+}
+{%loopcode
+    \ifciteseen%
+    {%
+        \usebibmacro{getshortarchive}%
+    }%
+    {\usebibmacro{getarchive}}%
+}
+{   %sepcode
+    \multicitedelim%
+}
+{%postnote
+\usebibmacro{postnote}%
+}
+
+
+
+%-----------------------------------------
+\DeclareCiteCommand{\archiverev}{% prenote
+    \usebibmacro{prenote}%
+}
+{%loopcode
+    \ifciteseen
+    {%
+        \usebibmacro{getshortarchive}%
+    }%
+    {\usebibmacro{getarchiverev}}%
+}
+{   %sepcode
+    \multicitedelim%
+}
+{%postnote
+\usebibmacro{postnote}%
+}
+
+
+%-----------------------------------------
+\DeclareCiteCommand{\parenarchive}[\mkbibparens]{% prenote
+    \usebibmacro{prenote}%
+}
+{%loopcode
+    \ifciteseen
+    {%
+        \usebibmacro{getshortarchive}%
+    }%
+    {\usebibmacro{getarchive}}%
+}
+{%sepcode
+    \multicitedelim%
+}
+{%postnote
+\usebibmacro{postnote}%
+}
+
+
+
+%-----------------------------------------
+\DeclareCiteCommand{\bracketarchive}[\mkbibbrackets]{% prenote
+    \usebibmacro{prenote}%
+}
+{%loopcode
+    \ifciteseen
+    {%
+        \usebibmacro{getshortarchive}%
+    }%
+    {\usebibmacro{getarchive}}%
+}
+{%sepcode
+    \multicitedelim%
+}
+{%postnote
+\usebibmacro{postnote}%
+}
+
+
+
+%-----------------------------------------
+\DeclareCiteCommand{\footarchive}[\mkbibfootnote]{% prenote
+    \usebibmacro{prenote}%
+}
+{%loopcode
+    \usebibmacro{getarchive}%
+}
+{   %sepcode
+    \multicitedelim%
+}
+{%postnote
+\usebibmacro{postnote}%
+}
+
+
+
+%-----------------------------------------
+\DeclareMultiCiteCommand{\archives}%
+{\archive}{\multicitedelim}
+\DeclareMultiCiteCommand{\parenarchives}[\mkbibparens]%
+{\parenarchive}{\multicitedelim}
+\DeclareMultiCiteCommand{\footarchives}[\mkbibfootnote]%
+{\footarchive}{\multicitedelim}
+
+
+
+%-----------------------------------------
+\DeclareCiteCommand{\archivea}{\usebibmacro{prenote}}{\usebibmacro{getarchive1}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archiveb}{\usebibmacro{prenote}}{\usebibmacro{getarchive2}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archivec}{\usebibmacro{prenote}}{\usebibmacro{getarchive3}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archived}{\usebibmacro{prenote}}{\usebibmacro{getarchive4}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archivee}{\usebibmacro{prenote}}{\usebibmacro{getarchive5}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archivef}{\usebibmacro{prenote}}{\usebibmacro{getarchive6}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archiveg}{\usebibmacro{prenote}}{\usebibmacro{getarchive7}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archiveh}{\usebibmacro{prenote}}{\usebibmacro{getarchive8}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archivei}{\usebibmacro{prenote}}{\usebibmacro{getarchive9}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archivej}{\usebibmacro{prenote}}{\usebibmacro{getarchive10}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archivek}{\usebibmacro{prenote}}{\usebibmacro{getarchive11}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archivel}{\usebibmacro{prenote}}{\usebibmacro{getarchive12}}{\multicitedelim}{\usebibmacro{postnote}}
+
+
+\DeclareCiteCommand{\archiveattra}{\usebibmacro{prenote}}{\usebibmacro{getitemattr1}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archiveattrb}{\usebibmacro{prenote}}{\usebibmacro{getitemattr2}}{\multicitedelim}{\usebibmacro{postnote}}
+\DeclareCiteCommand{\archiveattrc}{\usebibmacro{prenote}}{\usebibmacro{getitemattr3}}{\multicitedelim}{\usebibmacro{postnote}}
+
+
+
+
+%-----------------------------------------
+\DeclareBibliographyDriver{archive}{%
+    \usebibmacro{begentry}%
+    \iffieldundef{title}{}{\printfield{title}}%
+    \usebibmacro{getarchive}%
+%\iftoggle{bbx:related}{%
+%\setunit*{\addperiod}\printtext{\enspace}
+%\newline\usebibmacro{related:init}\usebibmacro{related}%
+%  }%
+%  {}%
+\iffieldundef{related}{}{%
+\setunit*{\addperiod}\printtext{\enspace}
+\newline\usebibmacro{related:init}\usebibmacro{related}%
+  }%
+    \usebibmacro{finentry}%
+}
+
+
+\DeclareSortingTemplate{bytitle}{%
+\sort{
+        \field{sorttitle}
+        \field{title}
+        \field{itemattr1}
+}
+\sort{
+        \field{itemattr2}
+}
+\sort{
+        \field{itemattr3}
+}
+}
+
+\DeclareRefcontext{rcbytitle}{sorting=bytitle}
+
+
+
+%-----------------------------------------
+\DeclareCiteCommand{\archiveitem}{% prenote
+    \usebibmacro{prenote}%
+}
+{%loopcode
+        \usebibmacro{getitemattrall}%
+}
+{   %sepcode
+    \multicitedelim%
+}
+{%postnote
+\usebibmacro{postnote}%
+}
+
+
+
+%-----------------------------------------
+\DeclareCiteCommand{\archiveloc}{% prenote
+    \usebibmacro{prenote}%
+}
+{%loopcode
+        \usebibmacro{getarchiveall}%
+}
+{   %sepcode
+    \multicitedelim%
+}
+{%postnote
+\usebibmacro{postnote}%
+}
+
+
+%-----------------------------------------
+\DeclareCiteCommand{\archivelocrev}{% prenote
+    \usebibmacro{prenote}%
+}
+{%loopcode
+        \usebibmacro{getarchiveallrev}%
+}
+{   %sepcode
+    \multicitedelim%
+}
+{%postnote
+\usebibmacro{postnote}%
+}
+
+
+
+
+
+
+
+%============  document
+\begin{document}
+
+
+\citetrackerfalse
+..., which had a profound impact  (\archive{ffdoc2} in the \citetitle{folders45} collection).
+
+Meanwhile, in another series of developments from \archiveattrc{ffdoc3} onwards (\citetitle{folders45}, \archiveg{ffdoc3}), ...
+\citetrackertrue
+
+\begin{verbatim}
+..., which had a profound impact
+(\archive{ffdoc2} in the \citetitle{folders45} collection).
+
+Meanwhile, in another series of developments from
+\archiveattrc{ffdoc3}
+onwards
+(\citetitle{folders45}, \archiveg{ffdoc3}), ...
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\medskip
+\cmm{archive}
+
+\medskip
+(A) Big Endian:
+
+\togglefalse{littleendian}
+
+\noindent First cite: \archive{test1}
+
+Second cite: \archive{test1}
+
+\medskip
+(B) Little Endian:
+\toggletrue{littleendian}
+
+\citetrackerfalse
+\noindent First cite: \archive{test1}
+
+\citetrackertrue
+Second cite: \archive{test1}
+
+%%%%% reverse direction: bottom up
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bigskip
+\cmm{archiverev}
+
+\medskip
+(C) Big Endian: Reverse
+
+\togglefalse{littleendian}
+
+\citetrackerfalse
+\noindent First cite: \archiverev{test1}
+
+\citetrackertrue
+Second cite: \archiverev{test1}
+
+\medskip
+(D) Little Endian: Reverse
+\toggletrue{littleendian}
+
+\citetrackerfalse
+\noindent First cite: \archiverev{test1}
+
+\citetrackertrue
+Second cite: \archiverev{test1}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bigskip
+\cmm{archiveitem}
+
+\medskip
+\archiveitem{test1}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bigskip
+\cmm{archiveloc}
+
+\medskip
+\archiveloc{test1}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bigskip
+\cmm{archivelocrev}
+
+\medskip
+\archivelocrev{test1}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bigskip
+\cmm{parenarchive}
+
+\medskip
+\citetrackerfalse
+\parenarchive{test1}
+
+\citetrackertrue
+Second cite: \parenarchive{test1}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bigskip
+\cmm{bracketarchive}
+
+\medskip
+\citetrackerfalse
+\bracketarchive{test1}
+
+\citetrackertrue
+Second cite: \bracketarchive{test1}
+
+\medskip
+\bracketarchive[See][leaf 4]{test1}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bigskip
+\cmm{footarchive}
+
+\medskip
+text\footarchive{test1}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bigskip
+\cmm{archivea} = \archivea{test1}
+
+\cmm{archiveb} = \archiveb{test1}
+
+\cmm{archivec} = \archivec{test1}
+
+\cmm{archived} = \archived{test1}
+
+\cmm{archivee} = \archivee{test1}
+
+\cmm{archivef} = \archivef{test1}
+
+\cmm{archiveg} = \archiveg{test1}
+
+\cmm{archiveh} = \archiveh{test1}
+
+\cmm{archivei} = \archivei{test1}
+
+\cmm{archivej} = \archivej{test1}
+
+\cmm{archivek} = \archivek{test1}
+
+\cmm{archivel} = \archivel{test1}
+
+\cmm{archiveattra} = \archiveattra{test1}
+
+\cmm{archiveattrb} = \archiveattrb{test1}
+
+\cmm{archiveattrc} = \archiveattrc{test1}
+
+
+\medskip
+---
+
+Box 2 (\verb|\archive{box2}|): \par\archive{box2}.
+
+\medskip
+One of the items in box 2 (\verb|\archive{box2a}| + \verb|\citetitle{box2}|): \par\archive{box2a} in the \citetitle{box2} archive.
+
+\medskip
+Folders4-5 (\verb|\archive{folders45}|): \par\archive{folders45}.
+
+\medskip
+A document (\verb|\archive{ffdoc2}| + \verb|\citetitle{folders45}|): \par\archive{ffdoc2}, in the \citetitle{folders45} collection.
+
+%A book: \cite{abook}.
+
+\newpage
+\begin{refcontext}{rcbytitle}
+\printbibliography
+\end{refcontext}
+
+
+
+\end{document}

@@ -125,6 +125,12 @@
 %% \paragraph{option children} sets show children (0=never,1=central person, 4=all)
  \xdef\grps@option@children{1}
  \define@key{grpskeys}{children}[1]{\xdef\grps@option@children{#1}}%
+%% \paragraph{option notes} sets show notes (0=never,1=central person, 4=all)
+ \xdef\grps@option@notes{1}
+ \define@key{grpskeys}{notes}[1]{\xdef\grps@option@notes{#1}}%
+%% \paragraph{option cite} sets show cite (0=never,1=central person, 4=all)
+ \xdef\grps@option@cite{1}
+ \define@key{grpskeys}{cite}[1]{\xdef\grps@option@cite{#1}}%
 %% \paragraph{option itemize} itemize information
  \xdef\grps@option@itemize{0}
  \define@key{grpskeys}{itemize}[1]{\xdef\grps@option@itemize{#1}}%
