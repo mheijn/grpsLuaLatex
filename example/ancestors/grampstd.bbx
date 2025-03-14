@@ -1,0 +1,78 @@
+\ProvidesFile{grampstd.bbx}
+[\abx@bbxid]
+
+\RequireBibliographyStyle{numeric}
+
+%\RequireBibliographyStyle{standard}
+%\ExecuteBibliographyOptions{sorting=debug}
+
+
+\DeclareDatamodelEntrytypes{source}
+\DeclareDatamodelFields[type=field, datatype=literal]{
+}
+
+\DeclareDatamodelEntryfields[source]{
+title,
+author,
+crossref
+}
+
+\DeclareDatamodelEntrytypes{repository}
+\DeclareDatamodelFields[type=field, datatype=literal]{
+name,
+web
+}
+
+\DeclareDatamodelEntryfields[repository]{
+title,
+name,
+type,
+address,
+web
+}
+%\newcommand{\makeurl}[3]{ +++#1+++ verder:#2 enals laatste #3}
+
+\newbibmacro*{webmacro}{%
+  \iffieldundef{web}{}{%
+  \iffieldundef{type}{Unknown link:}{\thefield{type}:}%
+  \iffieldundef{name}{\href{\thefield{web}}}{
+    \href{\thefield{web}}{\thefield{name}}}
+  }
+}
+
+\newbibmacro*{addressmacro}{
+  \iflistundef{location}{}{%
+  \iffieldundef{type}{Unknown link:}{\thefield{type}:}%
+  \iffieldundef{name}{\textit{\thelist{location}}}{
+    \thefield{name} \textit{\thelist{location}}}
+  }
+}
+
+%\DeclareFieldFormat[repository]{web}{\hyperlink{#1}{#2}}
+
+%\DeclareFieldFormat[repository]{type}{#1}
+
+\DeclareBibliographyDriver{repository}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \printfield{title}
+  \newunit\newblock
+  \usebibmacro{webmacro}%
+  \newunit\newblock
+  \usebibmacro{addressmacro}%
+  \newunit\newblock
+  \usebibmacro{finentry}%
+}
+\DeclareBibliographyDriver{source}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author}%
+  \newunit\newblock
+  \printfield{title}
+  \newunit\newblock
+  \usebibmacro{finentry}%
+}
+
+
+\endinput
+

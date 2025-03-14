@@ -1,0 +1,66 @@
+\documentclass{article}
+
+\usepackage{luacode}
+\usepackage{luapackageloader}
+\usepackage{tikz}
+\usepackage[tikz]{ocgx2}
+\usetikzlibrary{positioning}
+
+\usepackage[dutch]{babel}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=red,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={},
+    }
+\usepackage[backend=biber,
+	citestyle=numeric,
+	bibstyle=grampstd,
+	sorting=none,
+	url=true,
+	]{biblatex} 
+
+\addbibresource{gramps.bib} % Load bibliography file
+
+\newenvironment{Figure}{\nopagebreak[4]}{\par}%
+ \tikzset{%
+	tagbox/.style = {red,thick,solid},%
+	tagtext/.style = {black,thick,solid,rounded corners,fill=white},%
+	tagnumber/.style={yellow, font=\bf, fill=blue}
+}%
+
+
+\begin{document}
+
+\begin{luacode}
+	require("gramps")
+	local anc = require("ancestors")
+	require("person")
+	_=require("mh.gettext")
+	print = require("mh.print")
+
+	--gramps.SetDatabase("/home/marc/Nextcloud/gramps/grampsdb/63a99d81/sqlite.db")
+	gramps.SetDatabase("sqlite.db")
+
+	print("\\section*{Kwartierstaat van "..gramps.Person('I0001'):fullname().."}")
+	local voorouders = anc.ancestors('I0001',5)
+
+	for i,g in pairs(voorouders) do
+		print("\\subsection*{".._("Central Person","Generation %d",i).."}")
+		print("\\begin{itemize}")
+		for k,h in pairs(g) do
+			print(string.format("\\item[%d]",k))
+			printperson(h,voorouders)
+		end
+		print("\\end{itemize}")
+	end
+\end{luacode}
+
+
+\printbibliography
+
+\end{document}
