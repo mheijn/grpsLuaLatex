@@ -177,7 +177,9 @@ function q.get_handle_from_id(gramps_id)
     elseif fc=='P' then table='place'
     end
     res=proces_query("SELECT handle FROM "..table.." WHERE gramps_id='"..gramps_id.."'")
-    return res[1].handle
+    if 0==#res then 
+        print.e(string.format("The id %s is not found in sql-database \"%s\"",gramps_id,q.database)) return nil
+    else return res[1].handle end
 end
 
 function q.get_events_from_persons(blob)

@@ -63,7 +63,7 @@ if gramps and not gramps.Source.all then
                 if 0<#r.address_list then line=line.."address={".._.T(r.address_list[1].location:string()).."}\n" end
                 line = line.."}\n"
             else
-                local ex =url(r.urls)
+                local ex =bib_url(r.urls)
 
                 if 0<#r.address_list then
                     print(r.address_list[1])

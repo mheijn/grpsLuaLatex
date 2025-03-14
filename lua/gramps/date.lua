@@ -147,6 +147,8 @@ if gramps and not gramps.Date.MakeDate then
     local d,m,y
     local days_in_month = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
     
+    if m1==0 then m1=6 end; if m2==0 then m2=6 end --for estimates in year take half way
+    
     if d1>=d2 then d=d1-d2 else
         if is_leap_year(y1) then  days_in_month[2] = 29 end
         d = days_in_month[m1] + d1 -d2
