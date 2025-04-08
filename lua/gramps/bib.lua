@@ -10,13 +10,14 @@ if gramps and not gramps.Source.all then
     function gramps.Source:sort_on() return {self.gramps_id} end
     function gramps.Repository:sort_on() return {self.gramps_id} end
 
-    function gramps.Source.all()
+    function gramps.Source.all(bib)
+        local bibtex = bib or false;
         local s=""
         gramps.Source()
         for i, h in pairs(gramps.Source.Order) do
             local r = gramps.Source(h[1])
             local line
-            if tex then 
+            if bibtex then 
                 line="@source{"..r.gramps_id..",\n"
                 line=line.."title={".._.T(r.title).."},\n"
                 line=line.."author={".._.T(r.author).."},\n"
@@ -47,7 +48,8 @@ if gramps and not gramps.Source.all then
         return ""
     end
 
-    function gramps.Repository.all()
+    function gramps.Repository.all(bib)
+        local bibtex = bib or false;
         local s=""
         gramps.Repository()
         for i, h in pairs(gramps.Repository.Order) do
@@ -55,9 +57,9 @@ if gramps and not gramps.Source.all then
             local line
             --print(util.dump(r.data))
             --print(r)
-            if tex then
+            if bibtex then
                 line = "@repository{"..r.gramps_id..",\n"
-                line=line.."title={".._.T(r.name).."},\n"
+                line=line.."repositoryname={".._.T(r.name).."},\n"
                 line=line.."type={".._.T(r.type.string).."},\n"
                 line=line..bib_url(r.urls)
                 if 0<#r.address_list then line=line.."address={".._.T(r.address_list[1].location:string()).."}\n" end

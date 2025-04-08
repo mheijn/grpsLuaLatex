@@ -130,7 +130,19 @@ if gramps and not gramps.Event.Type then
     ]]--
 
     function gramps.Event:datum()
-        return self.date:short()
+        if type(self.date) == "table" then
+            return self.date:short()
+        else
+            return ""
+        end
+    end
+
+    function gramps.Event:plaats()
+        if 0<#self.place  then
+            return gramps.Place(self.place).title
+        else
+            return ""
+        end
     end
 
     function gramps.Event:short(type)

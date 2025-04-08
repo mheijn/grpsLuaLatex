@@ -121,6 +121,21 @@ if gramps and not gramps.Person.all then
         end
         return evs
     end
+
+    function gramps.Person:has_children()
+        for i,fh in pairs(self.family_list) do
+            if 0<#gramps.Family(fh).child_ref_list then return true end
+        end
+        return false
+    end
+
+    function gramps.Person:has_parents()
+        for i,fh in pairs(self.parent_family_list) do
+            if gramps.Family(fh).father_handle then return true end
+            if gramps.Family(fh).mother_handle then return true end
+        end
+        return false
+    end
 end
 ----------------------------------------
 

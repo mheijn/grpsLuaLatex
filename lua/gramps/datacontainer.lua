@@ -134,8 +134,8 @@ function DataContainer:get(name)
 	end
 	local error = string.format(_("%s not in scheme of %s"),name,self.scheme.scheme_type.title)
 	if DEBUG and DEBUG>3 then
-        print.D(error.." Valide entries are:")
-        for i,k in pairs(self.scheme_index) do print.D(i,k) end 
+        print.d(error.." Valide entries are:")
+        for i,k in pairs(self.scheme_index) do print.d(i,k) end 
     end
 	return  nil, error
 end
