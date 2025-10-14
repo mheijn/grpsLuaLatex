@@ -33,7 +33,7 @@ if gramps and not gramps.Media.all then
         local p=gramps.Person(ph)
         for i,im in ipairs(p.media_list) do
             if im.ref==m.handle then
-                local rec =im.rect
+                local rec = im.rect
                 if rec==nil then rec={0,0,100,100} end
                 obj = {handle=ph,x1=rec[1],y1=rec[2],x2=rec[3],y2=rec[4],
                             xm=0.5*(rec[1]+rec[3]),ym=0.5*(rec[2]+rec[4]),

@@ -310,6 +310,12 @@ function q.get_metadata(setting)
     return res
 end
 
+-- Extra
+function q.get_persons_from_familyname(name)
+    local res=proces_query("SELECT person.handle FROM person WHERE surname = '"..name.."'")
+    return res
+end
+
 if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then
     --print(Where({'1','2','3'}))
     --print(Where(nil,{'1','2','3'}))

@@ -13,7 +13,7 @@ if gramps and not gramps.Date.MakeDate then
   local days = { _("Sunday"), _("Monday"), _("Tuesday"), _("Wednesday"), _("Thursday"), _("Friday"), _("Saturday") }
   local months={_("January"),_("Februari"),_("March"),_("April"),_("May"),_("June"),
       _("Jyly"),_("August"),_("September"),_("October"),_("Noveber"),_("December")}
-  local modifier={"",_("before "),_("after "),_("about "),_("range "),_("between "),(""),(""),(""),("")}
+  local modifier={_("on "),_("before "),_("after "),_("about "),_("range "),_("between "),(""),(""),(""),("")}
   local quality={"",_("estimate as "),_("calculated as "),_("calclated and estimate as ")}
   local short_modifier={"",_("<"),_(">"),_("~"),(""),_("<>"),(""),(""),(""),("")}
   local short_quality={"",_("~"),_("+/-"),_("~+/-")}
@@ -47,6 +47,8 @@ if gramps and not gramps.Date.MakeDate then
     return s
   end
 
+  function _DnotEq(a,b) if a~=b then return a else return 0 end end
+
   function gramps.Date:long(weekday)
     --for k,v in pairs(self) do print(k,v) end
     local s=""
@@ -55,27 +57,31 @@ if gramps and not gramps.Date.MakeDate then
     if type(d) ~= "table" then return "" end
     lan = locality.language()
     if self.modifier < gramps.Date.Modifier.RANGE then
-      s = s .. _("on ")..quality[self.quality+1].. modifier[self.modifier+1]..gramps.Date.MakeDate(d[1],d[2],d[3],lan,weekday)
+      s = s .. modifier[self.modifier+1] .. quality[self.quality+1]..gramps.Date.MakeDate(d[1],d[2],d[3],lan,weekday)
     elseif self.modifier < gramps.Date.Modifier.TEXTONLY then
-      s = s .. quality[self.quality+1].. modifier[self.modifier+1]..gramps.Date.MakeDate(d[1],d[2],d[3],lan,weekday)..
-            _(" and ") ..gramps.Date.MakeDate(d[5],d[6],d[7],lan,weekday)
+      s = s .. modifier[self.modifier+1].. quality[self.quality+1] ..
+          gramps.Date.MakeDate(_DnotEq(d[1],d[5]),_DnotEq(d[2],d[6]),_DnotEq(d[3],d[7]),lan,weekday)..
+          --gramps.Date.MakeDate(d[1],d[2],d[3],lan,weekday)..
+          _(" and ") ..gramps.Date.MakeDate(d[5],d[6],d[7],lan,weekday)
     else
       s = s ..  self.text
     end
     return s-- .." ("..lan..")"
   end
-
+  
   function gramps.Date:short()
+    --print("Date:short()")
     local d =self.dateval
     if type(d) ~= "table" then return "" end
-    print(type(d))
+    --print(type(d))
     lan = locality.language()
     local s=""
     if self.modifier < gramps.Date.Modifier.RANGE then
-      s = s .. short_quality[self.quality+1].. short_modifier[self.modifier+1]..gramps.Date.MDate(d[1],d[2],d[3],lan)
+      s = s .. short_modifier[self.modifier+1].. short_quality[self.quality+1] ..gramps.Date.MDate(d[1],d[2],d[3],lan)
     elseif self.modifier < gramps.Date.Modifier.TEXTONLY then
-      s = s .. short_quality[self.quality+1].. short_modifier[self.modifier+1]..gramps.Date.MDate(d[1],d[2],d[3],lan)..
-            " - "..gramps.Date.MakeDate(d[5],d[6],d[7],lan,weekday)
+      s = s .. short_quality[self.quality+1].. short_modifier[self.modifier+1]..
+            gramps.Date.MDate(_DnotEq(d[1],d[5]),_DnotEq(d[2],d[6]),_DnotEq(d[3],d[7]),lan)..
+            " - "..gramps.Date.MDate(d[5],d[6],d[7],lan)
     end
     return s
   end
@@ -129,7 +135,7 @@ if gramps and not gramps.Date.MakeDate then
   function gramps.Date:realdate()
       local d =self.dateval
       if d then
-          return (d[2]==gramps.Date.Modifier.NONE and d[4][1]>0 and d[4][2]>0 and d[4][3]>0)
+          return (self.modifier == gramps.Date.Modifier.NONE and d[1]>0 and d[2]>0 and d[3]>0)
       else return false end
   end
 
@@ -147,17 +153,20 @@ if gramps and not gramps.Date.MakeDate then
     local d,m,y
     local days_in_month = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
     
-    if m1==0 then m1=6 end; if m2==0 then m2=6 end --for estimates in year take half way
+    --if m1==0 then m1=6 end; if m2==0 then m2=6 end --for estimates in year take half way
     
     if d1>=d2 then d=d1-d2 else
-        if is_leap_year(y1) then  days_in_month[2] = 29 end
-        d = days_in_month[m1] + d1 -d2
-        if m1==1 then m1=12; y1=y1-1 else  m1=m1-1 end 
+        if m1==0 then d=0 else
+          if is_leap_year(y1) then  days_in_month[2] = 29 end
+          d = days_in_month[m1] + d1 -d2
+          if m1==1 then m1=12; y1=y1-1 else  m1=m1-1 end 
+        end
     end
     if m1>=m2 then m=m1-m2;y=y1-y2 else
       m=12+m1-m2; y=y1-y2-1 
     end
     --print(d1,m1,y1,d2,m2,y2,y,m,d)
+    if y<0 then return nil end -- geschat verschil kleiner dan jaar
     return y,m,d
   end
   
@@ -243,7 +252,7 @@ if gramps and not gramps.Date.MakeDate then
     local ss=stop.dateval
     
     if sa and ss then
-      return substract(tonumber(ss[1]), tonumber(ss[2]),tonumber(ss[3]),tonumber(sa[1]),tonumber(sa[2]),tonumber(sa[3]))
+      return (self:realdate() and stop:realdate()),substract(tonumber(ss[1]), tonumber(ss[2]),tonumber(ss[3]),tonumber(sa[1]),tonumber(sa[2]),tonumber(sa[3]))
     end
     return  nil
   end

@@ -1,6 +1,7 @@
 if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then require("gramps") end
 if gramps and not gramps.Event.Type then
 
+    gramps.Event.__file = debug.getinfo(1, "S").source:sub(2)
 
     local util=require("gramps.util")
     local _ = require("mh.gettext")
@@ -130,19 +131,8 @@ if gramps and not gramps.Event.Type then
     ]]--
 
     function gramps.Event:datum()
-        if type(self.date) == "table" then
-            return self.date:short()
-        else
-            return ""
-        end
-    end
-
-    function gramps.Event:plaats()
-        if 0<#self.place  then
-            return gramps.Place(self.place).title
-        else
-            return ""
-        end
+        --return "XXX"
+        return self.date:short()
     end
 
     function gramps.Event:short(type)

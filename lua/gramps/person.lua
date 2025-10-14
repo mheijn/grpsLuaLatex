@@ -1,5 +1,7 @@
 if arg ~= nil and arg[0] == string.sub(debug.getinfo(1,'S').source,2) then require("gramps") end
 if gramps and not gramps.Person.all then
+    
+    gramps.Person.__file = debug.getinfo(1, "S").source:sub(2)
 
     local _ = require("mh.gettext")
     local print = require("mh.print")
@@ -48,25 +50,68 @@ if gramps and not gramps.Person.all then
     function gramps.Person:birth() end
     function gramps.Person.death() end
     function gramps.Person:sort_on() return {self:surname(), self:firstname()} end
+    
+    function gramps.Person:hasChildren()
+        for fi,fh in ipairs(self.family_list) do
+            f = gramps.Family(fh)
+            if #f.child_ref_list > 0 then return true; end
+        end
+        return false
+    end
+    function gramps.Person:hasParents()
+        ret = 0
+        for fi,fh in ipairs(self.parent_family_list) do
+            f = gramps.Family(fh)
+            if f.father_handle then ret = ret | 1 end
+            if f.mother_handle then ret = ret | 2 end
+        end
+        return ret
+    end
+    function gramps.Person:hasFather() return (1 & self:hasParents())>0 end
+    function gramps.Person:hasMother() return (2 & self:hasParents())>0 end
+    function gramps.Person:getFather() 
+        for fi,fh in ipairs(self.parent_family_list) do
+            local f = gramps.Family(fh)
+            return f.father_handle 
+        end
+    end
+    function gramps.Person:getMother() 
+        for fi,fh in ipairs(self.parent_family_list) do
+            local f = gramps.Family(fh)
+            return f.mother_handle 
+        end
+    end
 
     function gramps.Person.all()
         local s="";local sb="";local sd=""
+        local pt = {}
         gramps.Person()
         for i, h in pairs(gramps.Person.Order) do
             local p = gramps.Person(h[1])
 		
             bi,ba,de,bu = p:Life()
             --print("gg")
+            sb=""
+            sd=""
             if bi then sb = bi:datum()
             elseif ba then sb = ba:datum() end
             if de then sd = de:datum()
-            elseif bu then sb = bu.datum() end
+            elseif bu then  sd = bu:datum() end
             --print("ff")
             local line = string.format("%-7s%-15s%-15s %11s %11s",
                 p.gramps_id,p:surname(),p:firstname(),sb,sd)
+            --print(line)
+            table.insert(pt,{
+                id = p.gramps_id,
+                surname = p:surname(),
+                firstname = p:firstname(),
+                birth = sb,
+                death = sd
+                })
+
             s=s.."\n"..line
         end
-        return s
+        return pt
     end
 
     function gramps.Person:Life()
@@ -120,21 +165,6 @@ if gramps and not gramps.Person.all then
             table.insert(evs,ev) 
         end
         return evs
-    end
-
-    function gramps.Person:has_children()
-        for i,fh in pairs(self.family_list) do
-            if 0<#gramps.Family(fh).child_ref_list then return true end
-        end
-        return false
-    end
-
-    function gramps.Person:has_parents()
-        for i,fh in pairs(self.parent_family_list) do
-            if gramps.Family(fh).father_handle then return true end
-            if gramps.Family(fh).mother_handle then return true end
-        end
-        return false
     end
 end
 ----------------------------------------

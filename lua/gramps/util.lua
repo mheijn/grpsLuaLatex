@@ -112,16 +112,20 @@ function texify(s, t)
     return s
 end
 
-function u.dump(o,gen,t)
+function u.dump(o,gen,t,stop)
     if t==nil then t=true end
     if gen == nil then gen=0 end
-
+    local sn
    if type(o) == 'table' then
       local s = texify("{\n",t)
       for k,v in pairs(o) do
+         if stop==k then
+            sn = "[R]"..v.tag.. texify(',\n',t)
+         else
+            sn = u.dump(v,gen+1,t,stop) .. texify(',\n',t)
+        end
          if type(k) ~= 'number' then k = "'"..k.."'" end
          s =  s .. string.rep("-", gen*3)..texify("["..k.."]",t)..' = '
-         local sn = u.dump(v,gen+1,t) .. texify(',\n',t)
          s = s..sn
       end
       if tex then
