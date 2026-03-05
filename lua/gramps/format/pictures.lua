@@ -40,13 +40,22 @@ local function rectangles(m,x,y)
 end
 
 
-local function legenda(m)
+local function legenda(m,with_link)
+    with_link = (with_link == nil) or with_link
+    
     local s = ""
     local med_pers = m:persons()
+    
     for i,pers_ref in ipairs(med_pers) do
         local pers = gramps.Person(pers_ref.handle)
+        local sp=""
         
-        local sp="\\hyperlink{"..pers.gramps_id.."}{("..i..")\\ "..pers:fullname().."}"
+        if with_link then
+            sp="\\hyperlink{"..pers.gramps_id.."}{("..i..")\\ "..pers:fullname().."}"
+        else
+            sp="("..i..")\\ "..pers:fullname()
+        end 
+        
         if i < #med_pers  then
             if i == #med_pers-1 then sp=sp.._(" and ") else sp=sp..", " end
         end
@@ -55,8 +64,9 @@ local function legenda(m)
     return s
 end
 
-function Picture.image(h,embed)
+function Picture.image(h,embed,with_link)
     
+    with_link = (with_link == nil) or with_link
     embed = (embed==nil) or embed
     
     for  i,ph in ipairs(figures_shown) do if ph==h then return "",i end end 
@@ -111,7 +121,7 @@ function Picture.image(h,embed)
     s=s.."\\node (B) at (0,"..(-y*0.5 +11)..") {};"
     s=s.."\\node[below=of B, align=center, text width="..longsize.."mm]  {"
 --0.9*grps.gettextwidth()
-	s=s..legenda(media)
+	s=s..legenda(media,with_link)
 	s=s.."};\n" 
 	
 	s=s..rectangles(media,x,y)
